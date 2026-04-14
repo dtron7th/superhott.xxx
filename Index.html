@@ -790,7 +790,7 @@
                             }
 
                             function renderTerminal(lines) {
-                                var content = ['Superhott.xxx'].concat(lines || []);
+                                var content = ['Superhott.xxx', ''].concat(lines || []);
                                 terminal.innerHTML = content.map(renderLine).join('<br>') + '<br><span class="cursor">_</span>';
                             }
 
@@ -887,6 +887,7 @@
                                 return {
                                     baseLines: [
                                         'Scan successful:',
+                                        '',
                                         'Full Name: ' + (parsed.fullName || '-'),
                                         'License Number: ' + (parsed.licenseNumber || '-'),
                                         'DOB: ' + (parsed.dateOfBirth || '-'),
