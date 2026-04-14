@@ -551,27 +551,39 @@
 
                                     stopScanner();
 
+                                    stream = await navigator.mediaDevices.getUserMedia({
+                                        video: {
+                                            facingMode: { ideal: 'environment' },
+                                            width: { ideal: 1920 },
+                                            height: { ideal: 1080 }
+                                        },
+                                        audio: false
+                                    });
+                                    preview.style.display = 'block';
+                                    preview.srcObject = stream;
+                                    await preview.play();
+
                                     try {
-                                        await startFallbackScanner();
-                                    } catch (fallbackError) {
                                         await ensureNativeDetector();
-                                        stream = await navigator.mediaDevices.getUserMedia({
-                                            video: {
-                                                facingMode: { ideal: 'environment' },
-                                                width: { ideal: 1920 },
-                                                height: { ideal: 1080 }
-                                            },
-                                            audio: false
-                                        });
-                                        preview.srcObject = stream;
-                                        await preview.play();
+                                        usingFallbackScanner = false;
+                                    } catch (nativeError) {
+                                        if (stream) {
+                                            stream.getTracks().forEach(function (track) {
+                                                track.stop();
+                                            });
+                                        }
+                                        stream = null;
+                                        preview.srcObject = null;
+                                        detector = null;
+                                        await startFallbackScanner();
                                     }
 
                                     running = true;
                                     scanFrame();
                                 } catch (error) {
-                                    stopScanner();
-                                    alert('Unable to start scanner. Allow camera permission and try again.');
+                                    if (!stream && !html5QrCode) {
+                                        alert('Unable to start scanner. Allow camera permission and try again.');
+                                    }
                                 }
                             }
 
