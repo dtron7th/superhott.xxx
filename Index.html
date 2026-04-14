@@ -386,12 +386,28 @@
                                 const cleaned = (rawText || '').replace(/[\u001e\u001f]/g, '\n').replace(/\r/g, '\n');
                                 const lines = cleaned.split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
                                 const fields = {};
+
                                 lines.forEach(function (line) {
                                     const match = line.match(/^(D[A-Z0-9]{2})(.*)$/);
                                     if (match) {
                                         fields[match[1]] = match[2].trim();
                                     }
                                 });
+
+                                if (!Object.keys(fields).length) {
+                                    const compact = cleaned.replace(/\n+/g, ' ');
+                                    const tokenPattern = /(D[A-Z0-9]{2})([\s\S]*?)(?=D[A-Z0-9]{2}|$)/g;
+                                    let tokenMatch;
+
+                                    while ((tokenMatch = tokenPattern.exec(compact)) !== null) {
+                                        const key = tokenMatch[1];
+                                        const value = (tokenMatch[2] || '').trim();
+                                        if (key && value && !fields[key]) {
+                                            fields[key] = value;
+                                        }
+                                    }
+                                }
+
                                 return {
                                     firstName: fields.DAC || null,
                                     middleName: fields.DAD || null,
@@ -749,13 +765,32 @@
                                 }
 
                                 var parsed = detail.parsed;
+                                var hasParsedData = !!(
+                                    parsed.fullName ||
+                                    parsed.licenseNumber ||
+                                    parsed.dateOfBirth ||
+                                    parsed.expirationDate ||
+                                    parsed.street ||
+                                    parsed.city ||
+                                    parsed.state ||
+                                    parsed.postalCode
+                                );
+
+                                if (!hasParsedData) {
+                                    return [
+                                        'Scan successful (raw payload captured):',
+                                        String((detail && detail.raw) || '-').slice(0, 700)
+                                    ];
+                                }
+
                                 return [
                                     'Scan successful:',
                                     'Name: ' + (parsed.fullName || '-'),
                                     'License #: ' + (parsed.licenseNumber || '-'),
                                     'DOB: ' + (parsed.dateOfBirth || '-'),
                                     'Expires: ' + (parsed.expirationDate || '-'),
-                                    'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', ')
+                                    'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', '),
+                                    'Raw Size: ' + String((detail && detail.raw ? detail.raw.length : 0)) + ' chars'
                                 ];
                             }
 
