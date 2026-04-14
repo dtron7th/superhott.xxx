@@ -860,7 +860,11 @@
                 </style>
                 <!-- --Book_Mark - (Log_Window Script)--------------------- -->
                 <script aria-label="Log_Window_Script">
-
+                    document.getElementById('Log_Window_Close').addEventListener('click', function() {
+                        document.querySelector('.Scanner_Windows').style.display = 'none';
+                        document.querySelector('.Log_Window').style.display = 'none';
+                    });
+                    
                 </script>
             </div>
 
