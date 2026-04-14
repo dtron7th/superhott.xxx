@@ -746,6 +746,9 @@
                         (function () {
                             var terminal = document.getElementById('Terminal_Text');
                             var scanner = document.querySelector('.PDF417_Scanner');
+                            var scannerWindows = document.querySelector('.Scanner_Windows');
+                            var scannerWindow = document.querySelector('.PDF417_Scanner_Window');
+                            var logWindow = document.querySelector('.Log_Window');
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -799,6 +802,16 @@
                             if (scanner) {
                                 scanner.addEventListener('pdf417-scan', function (event) {
                                     renderTerminal(formatScan(event.detail));
+
+                                    if (scannerWindow) {
+                                        scannerWindow.style.display = 'none';
+                                    }
+                                    if (scannerWindows) {
+                                        scannerWindows.style.display = 'flex';
+                                    }
+                                    if (logWindow) {
+                                        logWindow.style.display = 'flex';
+                                    }
                                 });
                             }
 
@@ -823,6 +836,7 @@
                 <style aria-label="Log_Window_Style">
                     .Log_Window {
                         position: absolute;
+                        z-index: 4;
                         width: 300px;
                         height: 400px;
                         display: flex;
