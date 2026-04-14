@@ -322,6 +322,7 @@
                             let running = false;
                             let animationFrameId = null;
                             let lastRawValue = '';
+                            let lastScanAt = 0;
                             let audioContext = null;
                             let html5QrCode = null;
                             let usingFallbackScanner = false;
@@ -338,15 +339,35 @@
                                     if (!audioContext) {
                                         audioContext = new AudioCtx();
                                     }
+                                    if (audioContext.state === 'suspended') {
+                                        audioContext.resume();
+                                    }
                                     const oscillator = audioContext.createOscillator();
                                     const gainNode = audioContext.createGain();
                                     oscillator.type = 'sine';
                                     oscillator.frequency.value = 1046.5;
-                                    gainNode.gain.value = 0.08;
+                                    gainNode.gain.value = 0.14;
                                     oscillator.connect(gainNode);
                                     gainNode.connect(audioContext.destination);
                                     oscillator.start();
-                                    oscillator.stop(audioContext.currentTime + 0.12);
+                                    oscillator.stop(audioContext.currentTime + 0.16);
+                                } catch (error) {
+                                    // no-op
+                                }
+                            }
+
+                            function primeAudioContext() {
+                                try {
+                                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                                    if (!AudioCtx) {
+                                        return;
+                                    }
+                                    if (!audioContext) {
+                                        audioContext = new AudioCtx();
+                                    }
+                                    if (audioContext.state === 'suspended') {
+                                        audioContext.resume();
+                                    }
                                 } catch (error) {
                                     // no-op
                                 }
@@ -421,10 +442,17 @@
                             }
 
                             function publishResult(rawValue) {
-                                if (!rawValue || rawValue === lastRawValue) {
+                                if (!rawValue) {
                                     return;
                                 }
+
+                                const now = Date.now();
+                                if (rawValue === lastRawValue && now - lastScanAt < 1500) {
+                                    return;
+                                }
+
                                 lastRawValue = rawValue;
+                                lastScanAt = now;
                                 debugBeep();
                                 flashDetection();
 
@@ -512,6 +540,41 @@
                                 );
                             }
 
+                            async function startScanner() {
+                                try {
+                                    if (!window.isSecureContext) {
+                                        alert('Camera access requires https:// or http://localhost in Chrome/Edge.');
+                                        return;
+                                    }
+
+                                    primeAudioContext();
+
+                                    stopScanner();
+
+                                    try {
+                                        await startFallbackScanner();
+                                    } catch (fallbackError) {
+                                        await ensureNativeDetector();
+                                        stream = await navigator.mediaDevices.getUserMedia({
+                                            video: {
+                                                facingMode: { ideal: 'environment' },
+                                                width: { ideal: 1920 },
+                                                height: { ideal: 1080 }
+                                            },
+                                            audio: false
+                                        });
+                                        preview.srcObject = stream;
+                                        await preview.play();
+                                    }
+
+                                    running = true;
+                                    scanFrame();
+                                } catch (error) {
+                                    stopScanner();
+                                    alert('Unable to start scanner. Allow camera permission and try again.');
+                                }
+                            }
+
                             function stopScanner() {
                                 running = false;
 
@@ -558,39 +621,6 @@
                                 }
 
                                 animationFrameId = requestAnimationFrame(scanFrame);
-                            }
-
-                            async function startScanner() {
-                                try {
-                                    if (!window.isSecureContext) {
-                                        alert('Camera access requires https:// or http://localhost in Chrome/Edge.');
-                                        return;
-                                    }
-
-                                    stopScanner();
-
-                                    try {
-                                        await ensureNativeDetector();
-                                        stream = await navigator.mediaDevices.getUserMedia({
-                                            video: {
-                                                facingMode: { ideal: 'environment' },
-                                                width: { ideal: 1920 },
-                                                height: { ideal: 1080 }
-                                            },
-                                            audio: false
-                                        });
-                                        preview.srcObject = stream;
-                                        await preview.play();
-                                    } catch (nativeError) {
-                                        await startFallbackScanner();
-                                    }
-
-                                    running = true;
-                                    scanFrame();
-                                } catch (error) {
-                                    stopScanner();
-                                    alert('Unable to start scanner. Allow camera permission and try again.');
-                                }
                             }
 
                             openButton.addEventListener('click', startScanner);
