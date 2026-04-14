@@ -279,6 +279,7 @@
                                 return;
                             }
                             scannerHost.dataset.pdf417Init = 'true';
+
                             scannerHost.style.position = 'relative';
                             scannerHost.style.overflow = 'hidden';
 
@@ -287,18 +288,11 @@
                             preview.setAttribute('playsinline', 'true');
                             preview.autoplay = true;
                             preview.muted = true;
-                            preview.style.width = '100%';
-                            preview.style.height = '100%';
-                            preview.style.objectFit = 'cover';
-                            preview.style.position = 'absolute';
-                            preview.style.inset = '0';
+                            preview.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
                             scannerHost.appendChild(preview);
 
                             const sightOverlay = document.createElement('div');
-                            sightOverlay.style.position = 'absolute';
-                            sightOverlay.style.inset = '0';
-                            sightOverlay.style.pointerEvents = 'none';
-                            sightOverlay.style.zIndex = '2';
+                            sightOverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:2;';
 
                             const corners = [
                                 { top: '10px', left: '10px', borderTop: '2px solid #00ff99', borderLeft: '2px solid #00ff99' },
@@ -312,23 +306,15 @@
                                 corner.style.position = 'absolute';
                                 corner.style.width = '26px';
                                 corner.style.height = '26px';
-                                Object.keys(cornerStyle).forEach(function (key) {
-                                    corner.style[key] = cornerStyle[key];
+                                Object.keys(cornerStyle).forEach(function (k) {
+                                    corner.style[k] = cornerStyle[k];
                                 });
                                 sightOverlay.appendChild(corner);
                             });
 
                             const reticle = document.createElement('div');
-                            reticle.style.position = 'absolute';
-                            reticle.style.left = '50%';
-                            reticle.style.top = '50%';
-                            reticle.style.width = '120px';
-                            reticle.style.height = '56px';
-                            reticle.style.transform = 'translate(-50%, -50%)';
-                            reticle.style.border = '1px dashed rgba(0, 255, 153, 0.9)';
-                            reticle.style.boxShadow = '0 0 12px rgba(0, 255, 153, 0.35)';
+                            reticle.style.cssText = 'position:absolute;left:50%;top:50%;width:120px;height:56px;transform:translate(-50%,-50%);border:1px dashed rgba(0,255,153,.9);box-shadow:0 0 12px rgba(0,255,153,.35);';
                             sightOverlay.appendChild(reticle);
-
                             scannerHost.appendChild(sightOverlay);
 
                             let stream = null;
@@ -337,6 +323,8 @@
                             let animationFrameId = null;
                             let lastRawValue = '';
                             let audioContext = null;
+                            let html5QrCode = null;
+                            let usingFallbackScanner = false;
 
                             function debugBeep() {
                                 try {
@@ -344,30 +332,25 @@
                                     if (!AudioCtx) {
                                         return;
                                     }
-
                                     if (!audioContext) {
                                         audioContext = new AudioCtx();
                                     }
-
                                     const oscillator = audioContext.createOscillator();
                                     const gainNode = audioContext.createGain();
-
                                     oscillator.type = 'sine';
                                     oscillator.frequency.value = 1046.5;
                                     gainNode.gain.value = 0.08;
-
                                     oscillator.connect(gainNode);
                                     gainNode.connect(audioContext.destination);
-
                                     oscillator.start();
                                     oscillator.stop(audioContext.currentTime + 0.12);
                                 } catch (error) {
-                                    // debug beep is best-effort only
+                                    // no-op
                                 }
                             }
 
                             function flashDetection() {
-                                scannerHost.style.boxShadow = 'inset 0 0 0 2px #00ff99, 0 0 18px rgba(0, 255, 153, 0.8)';
+                                scannerHost.style.boxShadow = 'inset 0 0 0 2px #00ff99, 0 0 18px rgba(0,255,153,.8)';
                                 setTimeout(function () {
                                     scannerHost.style.boxShadow = 'none';
                                 }, 150);
@@ -377,14 +360,12 @@
                                 const cleaned = (rawText || '').replace(/[\u001e\u001f]/g, '\n').replace(/\r/g, '\n');
                                 const lines = cleaned.split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
                                 const fields = {};
-
                                 lines.forEach(function (line) {
                                     const match = line.match(/^(D[A-Z0-9]{2})(.*)$/);
                                     if (match) {
                                         fields[match[1]] = match[2].trim();
                                     }
                                 });
-
                                 return {
                                     firstName: fields.DAC || null,
                                     middleName: fields.DAD || null,
@@ -407,21 +388,84 @@
                                 if (!rawValue || rawValue === lastRawValue) {
                                     return;
                                 }
-
                                 lastRawValue = rawValue;
                                 debugBeep();
                                 flashDetection();
-                                const parsed = parseAamva(rawValue);
 
                                 window.lastPDF417Scan = {
                                     raw: rawValue,
-                                    parsed: parsed,
+                                    parsed: parseAamva(rawValue),
                                     timestamp: Date.now()
                                 };
 
                                 scannerHost.dispatchEvent(new CustomEvent('pdf417-scan', {
                                     detail: window.lastPDF417Scan
                                 }));
+                            }
+
+                            async function ensureNativeDetector() {
+                                if (!('BarcodeDetector' in window)) {
+                                    throw new Error('BarcodeDetector unavailable');
+                                }
+                                const formats = await BarcodeDetector.getSupportedFormats();
+                                if (!formats.includes('pdf417')) {
+                                    throw new Error('pdf417 not supported natively');
+                                }
+                                detector = new BarcodeDetector({ formats: ['pdf417'] });
+                            }
+
+                            function loadScript(src) {
+                                return new Promise(function (resolve, reject) {
+                                    const existing = document.querySelector('script[data-src="' + src + '"]');
+                                    if (existing) {
+                                        if (window.Html5Qrcode) {
+                                            resolve();
+                                            return;
+                                        }
+                                        existing.addEventListener('load', resolve, { once: true });
+                                        existing.addEventListener('error', reject, { once: true });
+                                        return;
+                                    }
+
+                                    const s = document.createElement('script');
+                                    s.src = src;
+                                    s.async = true;
+                                    s.dataset.src = src;
+                                    s.onload = resolve;
+                                    s.onerror = reject;
+                                    document.head.appendChild(s);
+                                });
+                            }
+
+                            async function startFallbackScanner() {
+                                const fallbackCdn = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+                                await loadScript(fallbackCdn);
+                                if (!window.Html5Qrcode || !window.Html5QrcodeSupportedFormats) {
+                                    throw new Error('Fallback scanner failed to load');
+                                }
+
+                                if (!scannerHost.id) {
+                                    scannerHost.id = 'PDF417_Scanner_Host';
+                                }
+
+                                usingFallbackScanner = true;
+                                preview.style.display = 'none';
+
+                                html5QrCode = new window.Html5Qrcode(scannerHost.id, { verbose: false });
+                                await html5QrCode.start(
+                                    { facingMode: 'environment' },
+                                    {
+                                        fps: 12,
+                                        qrbox: { width: 220, height: 90 },
+                                        formatsToSupport: [window.Html5QrcodeSupportedFormats.PDF_417]
+                                    },
+                                    function (decodedText) {
+                                        publishResult(decodedText);
+                                    },
+                                    function () {
+                                        // ignore misses
+                                    }
+                                );
                             }
 
                             function stopScanner() {
@@ -437,9 +481,20 @@
                                         track.stop();
                                     });
                                 }
-
                                 stream = null;
                                 preview.srcObject = null;
+
+                                if (html5QrCode) {
+                                    const qr = html5QrCode;
+                                    html5QrCode = null;
+                                    qr.stop().catch(function () {
+                                        // ignore cleanup errors
+                                    });
+                                }
+
+                                detector = null;
+                                usingFallbackScanner = false;
+                                preview.style.display = 'block';
                             }
 
                             async function scanFrame() {
@@ -447,15 +502,15 @@
                                     return;
                                 }
 
-                                try {
-                                    if (preview.readyState >= 2 && detector) {
+                                if (!usingFallbackScanner && detector && preview.readyState >= 2) {
+                                    try {
                                         const codes = await detector.detect(preview);
                                         if (codes.length > 0 && codes[0].rawValue) {
                                             publishResult(codes[0].rawValue);
                                         }
+                                    } catch (error) {
+                                        // ignore decode frame errors
                                     }
-                                } catch (error) {
-                                    // keep loop alive for temporary frame/detect errors
                                 }
 
                                 animationFrameId = requestAnimationFrame(scanFrame);
@@ -470,34 +525,34 @@
 
                                     stopScanner();
 
-                                    stream = await navigator.mediaDevices.getUserMedia({
-                                        video: { facingMode: { ideal: 'environment' } },
-                                        audio: false
-                                    });
-
-                                    preview.srcObject = stream;
-                                    await preview.play();
-
                                     try {
-                                        await ensureDetector();
-                                    } catch (error) {
-                                        detector = null;
+                                        await ensureNativeDetector();
+                                        stream = await navigator.mediaDevices.getUserMedia({
+                                            video: {
+                                                facingMode: { ideal: 'environment' },
+                                                width: { ideal: 1920 },
+                                                height: { ideal: 1080 }
+                                            },
+                                            audio: false
+                                        });
+                                        preview.srcObject = stream;
+                                        await preview.play();
+                                    } catch (nativeError) {
+                                        await startFallbackScanner();
                                     }
 
                                     running = true;
                                     scanFrame();
                                 } catch (error) {
                                     stopScanner();
-                                    alert('Allow camera access in the browser permission popup (or click the camera icon in the address bar and set this site to Allow).');
+                                    alert('Unable to start scanner. Allow camera permission and try again.');
                                 }
                             }
 
                             openButton.addEventListener('click', startScanner);
-
                             if (closeButton) {
                                 closeButton.addEventListener('click', stopScanner);
                             }
-
                             window.addEventListener('beforeunload', stopScanner);
                         })();
                     </script>
