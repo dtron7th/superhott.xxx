@@ -313,7 +313,7 @@
                             });
 
                             const reticle = document.createElement('div');
-                            reticle.style.cssText = 'position:absolute;left:50%;top:50%;width:120px;height:56px;transform:translate(-50%,-50%);border:1px dashed rgba(0,255,153,.9);box-shadow:0 0 12px rgba(0,255,153,.35);';
+                            reticle.style.cssText = 'position:absolute;left:50%;top:50%;width:280px;max-width:95%;height:104px;transform:translate(-50%,-50%);border:1px dashed rgba(0,255,153,.9);box-shadow:0 0 12px rgba(0,255,153,.35);';
                             sightOverlay.appendChild(reticle);
                             scannerHost.appendChild(sightOverlay);
 
@@ -325,6 +325,9 @@
                             let audioContext = null;
                             let html5QrCode = null;
                             let usingFallbackScanner = false;
+                            let nativeStartAt = 0;
+                            let fallbackAttempted = false;
+                            let switchingToFallback = false;
 
                             function debugBeep() {
                                 try {
@@ -455,17 +458,46 @@
                                 await html5QrCode.start(
                                     { facingMode: 'environment' },
                                     {
-                                        fps: 12,
-                                        qrbox: { width: 420, height: 90 },
+                                        fps: 14,
+                                        qrbox: function (viewfinderWidth, viewfinderHeight) {
+                                            return {
+                                                width: Math.floor(Math.min(viewfinderWidth * 0.95, 320)),
+                                                height: Math.floor(Math.min(viewfinderHeight * 0.48, 132))
+                                            };
+                                        },
                                         formatsToSupport: [window.Html5QrcodeSupportedFormats.PDF_417]
                                     },
                                     function (decodedText) {
                                         publishResult(decodedText);
                                     },
+
                                     function () {
                                         // ignore misses
                                     }
                                 );
+                            }
+
+                            async function switchToFallbackFromNative() {
+                                if (switchingToFallback || usingFallbackScanner || html5QrCode) {
+                                    return;
+                                }
+
+                                switchingToFallback = true;
+
+                                if (stream) {
+                                    stream.getTracks().forEach(function (track) {
+                                        track.stop();
+                                    });
+                                }
+                                stream = null;
+                                preview.srcObject = null;
+                                detector = null;
+
+                                try {
+                                    await startFallbackScanner();
+                                } finally {
+                                    switchingToFallback = false;
+                                }
                             }
 
                             function stopScanner() {
@@ -495,6 +527,9 @@
                                 detector = null;
                                 usingFallbackScanner = false;
                                 preview.style.display = 'block';
+                                nativeStartAt = 0;
+                                fallbackAttempted = false;
+                                switchingToFallback = false;
                             }
 
                             async function scanFrame() {
@@ -506,7 +541,11 @@
                                     try {
                                         const codes = await detector.detect(preview);
                                         if (codes.length > 0 && codes[0].rawValue) {
+                                            nativeStartAt = Date.now();
                                             publishResult(codes[0].rawValue);
+                                        } else if (!fallbackAttempted && nativeStartAt && Date.now() - nativeStartAt > 3500) {
+                                            fallbackAttempted = true;
+                                            await switchToFallbackFromNative();
                                         }
                                     } catch (error) {
                                         // ignore decode frame errors
@@ -537,6 +576,8 @@
                                         });
                                         preview.srcObject = stream;
                                         await preview.play();
+                                        nativeStartAt = Date.now();
+                                        fallbackAttempted = false;
                                     } catch (nativeError) {
                                         await startFallbackScanner();
                                     }
