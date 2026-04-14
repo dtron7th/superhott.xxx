@@ -325,9 +325,9 @@
                             let audioContext = null;
                             let html5QrCode = null;
                             let usingFallbackScanner = false;
-                            let nativeStartAt = 0;
-                            let fallbackAttempted = false;
-                            let switchingToFallback = false;
+
+                            const terminal = document.getElementById('Terminal_Text');
+                            const logWindow = document.querySelector('.Log_Window');
 
                             function debugBeep() {
                                 try {
@@ -387,6 +387,39 @@
                                 };
                             }
 
+                            function writeScanToTerminal(scan) {
+                                if (!terminal || !scan || !scan.parsed) {
+                                    return;
+                                }
+
+                                const parsed = scan.parsed;
+                                const lines = [
+                                    'Superhott.xxx',
+                                    '',
+                                    'User:\\> ',
+                                    'Scan successful:',
+                                    'Name: ' + (parsed.fullName || '-'),
+                                    'License #: ' + (parsed.licenseNumber || '-'),
+                                    'DOB: ' + (parsed.dateOfBirth || '-'),
+                                    'Expires: ' + (parsed.expirationDate || '-'),
+                                    'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', '),
+                                    '',
+                                    'RAW:',
+                                    String(scan.raw || '')
+                                ];
+
+                                terminal.innerHTML = lines.map(function (line) {
+                                    return String(line)
+                                        .replace(/&/g, '&amp;')
+                                        .replace(/</g, '&lt;')
+                                        .replace(/>/g, '&gt;');
+                                }).join('<br>') + '<br><span class="cursor">_</span>';
+
+                                if (logWindow) {
+                                    logWindow.style.display = 'flex';
+                                }
+                            }
+
                             function publishResult(rawValue) {
                                 if (!rawValue || rawValue === lastRawValue) {
                                     return;
@@ -400,6 +433,8 @@
                                     parsed: parseAamva(rawValue),
                                     timestamp: Date.now()
                                 };
+
+                                writeScanToTerminal(window.lastPDF417Scan);
 
                                 scannerHost.dispatchEvent(new CustomEvent('pdf417-scan', {
                                     detail: window.lastPDF417Scan
@@ -477,29 +512,6 @@
                                 );
                             }
 
-                            async function switchToFallbackFromNative() {
-                                if (switchingToFallback || usingFallbackScanner || html5QrCode) {
-                                    return;
-                                }
-
-                                switchingToFallback = true;
-
-                                if (stream) {
-                                    stream.getTracks().forEach(function (track) {
-                                        track.stop();
-                                    });
-                                }
-                                stream = null;
-                                preview.srcObject = null;
-                                detector = null;
-
-                                try {
-                                    await startFallbackScanner();
-                                } finally {
-                                    switchingToFallback = false;
-                                }
-                            }
-
                             function stopScanner() {
                                 running = false;
 
@@ -527,9 +539,6 @@
                                 detector = null;
                                 usingFallbackScanner = false;
                                 preview.style.display = 'block';
-                                nativeStartAt = 0;
-                                fallbackAttempted = false;
-                                switchingToFallback = false;
                             }
 
                             async function scanFrame() {
@@ -541,11 +550,7 @@
                                     try {
                                         const codes = await detector.detect(preview);
                                         if (codes.length > 0 && codes[0].rawValue) {
-                                            nativeStartAt = Date.now();
                                             publishResult(codes[0].rawValue);
-                                        } else if (!fallbackAttempted && nativeStartAt && Date.now() - nativeStartAt > 3500) {
-                                            fallbackAttempted = true;
-                                            await switchToFallbackFromNative();
                                         }
                                     } catch (error) {
                                         // ignore decode frame errors
@@ -576,8 +581,6 @@
                                         });
                                         preview.srcObject = stream;
                                         await preview.play();
-                                        nativeStartAt = Date.now();
-                                        fallbackAttempted = false;
                                     } catch (nativeError) {
                                         await startFallbackScanner();
                                     }
