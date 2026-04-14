@@ -279,6 +279,8 @@
                                 return;
                             }
                             scannerHost.dataset.pdf417Init = 'true';
+                            scannerHost.style.position = 'relative';
+                            scannerHost.style.overflow = 'hidden';
 
                             const preview = document.createElement('video');
                             preview.className = 'PDF417_Preview';
@@ -288,13 +290,88 @@
                             preview.style.width = '100%';
                             preview.style.height = '100%';
                             preview.style.objectFit = 'cover';
+                            preview.style.position = 'absolute';
+                            preview.style.inset = '0';
                             scannerHost.appendChild(preview);
+
+                            const sightOverlay = document.createElement('div');
+                            sightOverlay.style.position = 'absolute';
+                            sightOverlay.style.inset = '0';
+                            sightOverlay.style.pointerEvents = 'none';
+                            sightOverlay.style.zIndex = '2';
+
+                            const corners = [
+                                { top: '10px', left: '10px', borderTop: '2px solid #00ff99', borderLeft: '2px solid #00ff99' },
+                                { top: '10px', right: '10px', borderTop: '2px solid #00ff99', borderRight: '2px solid #00ff99' },
+                                { bottom: '10px', left: '10px', borderBottom: '2px solid #00ff99', borderLeft: '2px solid #00ff99' },
+                                { bottom: '10px', right: '10px', borderBottom: '2px solid #00ff99', borderRight: '2px solid #00ff99' }
+                            ];
+
+                            corners.forEach(function (cornerStyle) {
+                                const corner = document.createElement('div');
+                                corner.style.position = 'absolute';
+                                corner.style.width = '26px';
+                                corner.style.height = '26px';
+                                Object.keys(cornerStyle).forEach(function (key) {
+                                    corner.style[key] = cornerStyle[key];
+                                });
+                                sightOverlay.appendChild(corner);
+                            });
+
+                            const reticle = document.createElement('div');
+                            reticle.style.position = 'absolute';
+                            reticle.style.left = '50%';
+                            reticle.style.top = '50%';
+                            reticle.style.width = '120px';
+                            reticle.style.height = '56px';
+                            reticle.style.transform = 'translate(-50%, -50%)';
+                            reticle.style.border = '1px dashed rgba(0, 255, 153, 0.9)';
+                            reticle.style.boxShadow = '0 0 12px rgba(0, 255, 153, 0.35)';
+                            sightOverlay.appendChild(reticle);
+
+                            scannerHost.appendChild(sightOverlay);
 
                             let stream = null;
                             let detector = null;
                             let running = false;
                             let animationFrameId = null;
                             let lastRawValue = '';
+                            let audioContext = null;
+
+                            function debugBeep() {
+                                try {
+                                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                                    if (!AudioCtx) {
+                                        return;
+                                    }
+
+                                    if (!audioContext) {
+                                        audioContext = new AudioCtx();
+                                    }
+
+                                    const oscillator = audioContext.createOscillator();
+                                    const gainNode = audioContext.createGain();
+
+                                    oscillator.type = 'sine';
+                                    oscillator.frequency.value = 1046.5;
+                                    gainNode.gain.value = 0.08;
+
+                                    oscillator.connect(gainNode);
+                                    gainNode.connect(audioContext.destination);
+
+                                    oscillator.start();
+                                    oscillator.stop(audioContext.currentTime + 0.12);
+                                } catch (error) {
+                                    // debug beep is best-effort only
+                                }
+                            }
+
+                            function flashDetection() {
+                                scannerHost.style.boxShadow = 'inset 0 0 0 2px #00ff99, 0 0 18px rgba(0, 255, 153, 0.8)';
+                                setTimeout(function () {
+                                    scannerHost.style.boxShadow = 'none';
+                                }, 150);
+                            }
 
                             function parseAamva(rawText) {
                                 const cleaned = (rawText || '').replace(/[\u001e\u001f]/g, '\n').replace(/\r/g, '\n');
@@ -326,28 +403,14 @@
                                 };
                             }
 
-                            async function ensureDetector() {
-                                if (!('BarcodeDetector' in window)) {
-                                    throw new Error('BarcodeDetector is not supported in this browser.');
-                                }
-
-                                if (!detector) {
-                                    const formats = await BarcodeDetector.getSupportedFormats();
-                                    if (!formats.includes('pdf417')) {
-                                        throw new Error('PDF417 is not supported in this browser.');
-                                    }
-                                    detector = new BarcodeDetector({ formats: ['pdf417'] });
-                                }
-
-                                return detector;
-                            }
-
                             function publishResult(rawValue) {
                                 if (!rawValue || rawValue === lastRawValue) {
                                     return;
                                 }
 
                                 lastRawValue = rawValue;
+                                debugBeep();
+                                flashDetection();
                                 const parsed = parseAamva(rawValue);
 
                                 window.lastPDF417Scan = {
