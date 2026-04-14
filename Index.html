@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- --Book_Mark - (Color Variables Style)--------------------- -->
+    <style aria-label="Color_Vars">
+        :root {
+            --Main_UI_Button: #00000031;
+            --Main_UI_Text_Color: #ffffff;
+            --Main_UI_Backdrop: blur(20px);
+            --Main_Font_Size: 10px;
+        }
+    </style>
+
+    <!-- --Book_Mark - (Global Styles)--------------------- -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Main_Font', monospace;
+        }
+
+        *::before {
+            content: attr(class) attr(id);
+            position: absolute;
+            font-size: 8px;
+            color: yellow;
+            background: rgba(0, 0, 0, 0.582);
+            padding: 2px;
+            z-index: 9999;
+            pointer-events: none;
+            display: none;
+        }
+
+        @font-face {
+            font-family: 'Main_Font';
+            src: url('Fonts/bront-master/bront-master/DejaVuSansMono.ttf') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            width: 100dvw;
+            height: 100dvh;
+        }
+    </style>
+
+    <div class="Dev_Settings">
+        <div class="Buttons">
+            <button id="Dev_Settings_Lables">LAB</button>
+            <button id="Dev_Settings_Border">BOR</button>
+        </div>
+        <style aria-label="Dev_Settings_Style">
+            .Dev_Settings {
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                width: 30px;
+                height: 55px;
+                background: rgb(0, 0, 0);
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .Dev_Settings .Buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .Dev_Settings .Buttons button {
+                width: 20px;
+                height: 20px;
+                background: rgb(0, 119, 255);
+                outline: none;
+                border: none;
+                font-size: 8px;
+                color: rgb(255, 255, 255);
+            }
+        </style>
+        <script aria-label="Dev_Settings_Script">
+
+            const devSettings = document.querySelector('.Dev_Settings');
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            devSettings.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                offsetX = e.clientX - devSettings.offsetLeft;
+                offsetY = e.clientY - devSettings.offsetTop;
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    devSettings.style.left = (e.clientX - offsetX) + 'px';
+                    devSettings.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+
+            devSettings.addEventListener('touchstart', function(e) {
+                isDragging = true;
+                offsetX = e.touches[0].clientX - devSettings.offsetLeft;
+                offsetY = e.touches[0].clientY - devSettings.offsetTop;
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (isDragging) {
+                    devSettings.style.left = (e.touches[0].clientX - offsetX) + 'px';
+                    devSettings.style.top = (e.touches[0].clientY - offsetY) + 'px';
+                }
+            });
+
+            document.addEventListener('touchend', function() {
+                isDragging = false;
+            });
+            
+        
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('Dev_Settings_Lables').addEventListener('click', function() {
+                    const style = document.createElement('style');
+                    style.id = 'dev-labels-style';
+                    const existingStyle = document.getElementById('dev-labels-style');
+                    if (existingStyle) {
+                        existingStyle.remove();
+                    } else {
+                        style.textContent = '*::before { display: flex !important; }';
+                        document.head.appendChild(style);
+                    }
+                });
+            });
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('Dev_Settings_Border').addEventListener('click', function() {
+                    const style = document.createElement('style');
+                    style.id = 'dev-border-style';
+                    const existingStyle = document.getElementById('dev-border-style');
+                    if (existingStyle) {
+                        existingStyle.remove();
+                    } else {
+                        style.textContent = '* { border: 1px solid red !important; }';
+                        document.head.appendChild(style);
+                    }
+                });
+            });
+        </script>
+    </div>
+</head>
+<body>
+    <!-- --Book_Mark - (Body Styles)--------------------- -->
+    <!-- --Book_Mark - (Id_Scanner Container)--------------------- -->
+    <div class="Id_Scanner">
+        
+        <!-- --Book_Mark - (Wallpaper Section)--------------------- -->
+        <div class="Wallpaper">
+            <img src="/Images/Wallpaper/Untitled(0).png" alt="">
+
+            <!-- --Book_Mark - (Wallpaper Styles)--------------------- -->
+            <style aria-label="Wallpaper_Style">
+                .Wallpaper {
+                    width: 100%;
+                    height: 100%;
+                }
+                
+                .Wallpaper img {
+                    object-fit: cover;
+                    width: 100%;
+                    height: 100%;
+                }
+            </style>
+        </div>
+        <!-- --Book_Mark - (Scanner Section)--------------------- -->
+        <div class="Scanner">
+            <!-- --Book_Mark - (Scanner Window)--------------------- -->
+            <div class="Scanner_Window">
+                <p id="Opening_Window_Text">Welcome to Superhott.xxx, join the hottest site on the web! Just scan your state ID to create an account</p>
+                <button id="Scan_ID_Button">Scan State ID</button>
+
+                <!-- --Book_Mark - (Opening Window Text Styles)--------------------- -->
+                <style aria-label="Opening_Window_Text_Style">
+                    #Opening_Window_Text {
+                        font-size: var(--Main_Font_Size);
+                        color: var(--Main_UI_Text_Color);
+                    }
+
+                    .Scanner_Window {
+                        width: 300px;
+                        height: 200px;
+                        background-color: var(--Main_UI_Button);
+                        backdrop-filter: var(--Main_UI_Backdrop);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .Scanner .Scanner_Window p {
+                        position: absolute;
+                        top: 20px;
+                        width: calc(100% - 40px);
+                        text-align: center;
+                    }
+                    
+                    .Scanner button {
+                        position: absolute;
+                        bottom: 20px;
+                        width: 150px;
+                        height: 30px;
+                        border: none;
+                        outline: none;
+                        cursor: pointer;
+                        background-color: var(--Main_UI_Button);
+                        color: var(--Main_UI_Text_Color);
+                        font-size: var(--Main_Font_Size);
+                    }
+                </style>
+                <script aria-label="Scanner_Window_Script">
+
+                    document.getElementById('Scan_ID_Button').addEventListener('click', function() {
+                        document.querySelector('.Scanner_Windows').style.display = 'flex';
+                        document.querySelector('.PDF417_Scanner_Window').style.display = 'flex';
+                    });
+
+                    
+                </script>
+            </div>
+            
+            
+            <!-- --Book_Mark - (Scanner Styles)--------------------- -->
+            <style aria-label="Scanner_Style">
+                .Scanner {
+                    position: absolute;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+            </style>
+        </div>
+
+        
+        <!-- --Book_Mark - (Scanner_Windows Container)--------------------- -->
+        <div class="Scanner_Windows">
+
+            <!-- --Book_Mark - (ID_Scanner Modal)--------------------- -->
+            <div class="PDF417_Scanner_Window">
+
+                <button id="PDF417_Scanner_Close">[Close]</button>
+                <div class="PDF417_Scanner">
+                    <!-- --Book_Mark - (PDF417_Scanner Styles)--------------------- -->
+                    <style aria-label="PDF417_Scanner_Window_Style">
+                        .PDF417_Scanner {
+                            width: calc(100% - 60px);
+                            height: calc(100% - 60px);
+                            background-color: rgba(255, 255, 255, 0.1);
+                        }
+                    </style>
+
+                    <!-- --Book_Mark - (PDF417_Scanner Script)--------------------- -->
+                    <script aria-label="PDF417_Scanner_Script">
+                        (function () {
+                            const scannerHost = document.querySelector('.PDF417_Scanner');
+                            const openButton = document.getElementById('Scan_ID_Button');
+                            const closeButton = document.getElementById('PDF417_Scanner_Close');
+
+                            if (!scannerHost || !openButton || scannerHost.dataset.pdf417Init === 'true') {
+                                return;
+                            }
+                            scannerHost.dataset.pdf417Init = 'true';
+
+                            const preview = document.createElement('video');
+                            preview.className = 'PDF417_Preview';
+                            preview.setAttribute('playsinline', 'true');
+                            preview.autoplay = true;
+                            preview.muted = true;
+                            preview.style.width = '100%';
+                            preview.style.height = '100%';
+                            preview.style.objectFit = 'cover';
+                            scannerHost.appendChild(preview);
+
+                            let stream = null;
+                            let detector = null;
+                            let running = false;
+                            let animationFrameId = null;
+                            let lastRawValue = '';
+
+                            function parseAamva(rawText) {
+                                const cleaned = (rawText || '').replace(/[\u001e\u001f]/g, '\n').replace(/\r/g, '\n');
+                                const lines = cleaned.split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
+                                const fields = {};
+
+                                lines.forEach(function (line) {
+                                    const match = line.match(/^(D[A-Z0-9]{2})(.*)$/);
+                                    if (match) {
+                                        fields[match[1]] = match[2].trim();
+                                    }
+                                });
+
+                                return {
+                                    firstName: fields.DAC || null,
+                                    middleName: fields.DAD || null,
+                                    lastName: fields.DCS || null,
+                                    fullName: [fields.DAC, fields.DAD, fields.DCS].filter(Boolean).join(' ').trim() || null,
+                                    licenseNumber: fields.DAQ || null,
+                                    dateOfBirth: fields.DBB || null,
+                                    expirationDate: fields.DBA || null,
+                                    issueDate: fields.DBD || null,
+                                    sex: fields.DBC || null,
+                                    street: fields.DAG || null,
+                                    city: fields.DAI || null,
+                                    state: fields.DAJ || null,
+                                    postalCode: fields.DAK || null,
+                                    rawFields: fields
+                                };
+                            }
+
+                            async function ensureDetector() {
+                                if (!('BarcodeDetector' in window)) {
+                                    throw new Error('BarcodeDetector is not supported in this browser.');
+                                }
+
+                                if (!detector) {
+                                    const formats = await BarcodeDetector.getSupportedFormats();
+                                    if (!formats.includes('pdf417')) {
+                                        throw new Error('PDF417 is not supported in this browser.');
+                                    }
+                                    detector = new BarcodeDetector({ formats: ['pdf417'] });
+                                }
+
+                                return detector;
+                            }
+
+                            function publishResult(rawValue) {
+                                if (!rawValue || rawValue === lastRawValue) {
+                                    return;
+                                }
+
+                                lastRawValue = rawValue;
+                                const parsed = parseAamva(rawValue);
+
+                                window.lastPDF417Scan = {
+                                    raw: rawValue,
+                                    parsed: parsed,
+                                    timestamp: Date.now()
+                                };
+
+                                scannerHost.dispatchEvent(new CustomEvent('pdf417-scan', {
+                                    detail: window.lastPDF417Scan
+                                }));
+                            }
+
+                            function stopScanner() {
+                                running = false;
+
+                                if (animationFrameId) {
+                                    cancelAnimationFrame(animationFrameId);
+                                    animationFrameId = null;
+                                }
+
+                                if (stream) {
+                                    stream.getTracks().forEach(function (track) {
+                                        track.stop();
+                                    });
+                                }
+
+                                stream = null;
+                                preview.srcObject = null;
+                            }
+
+                            async function scanFrame() {
+                                if (!running) {
+                                    return;
+                                }
+
+                                try {
+                                    if (preview.readyState >= 2 && detector) {
+                                        const codes = await detector.detect(preview);
+                                        if (codes.length > 0 && codes[0].rawValue) {
+                                            publishResult(codes[0].rawValue);
+                                        }
+                                    }
+                                } catch (error) {
+                                    // keep loop alive for temporary frame/detect errors
+                                }
+
+                                animationFrameId = requestAnimationFrame(scanFrame);
+                            }
+
+                            async function startScanner() {
+                                try {
+                                    if (!window.isSecureContext) {
+                                        alert('Camera access requires https:// or http://localhost in Chrome/Edge.');
+                                        return;
+                                    }
+
+                                    stopScanner();
+
+                                    stream = await navigator.mediaDevices.getUserMedia({
+                                        video: { facingMode: { ideal: 'environment' } },
+                                        audio: false
+                                    });
+
+                                    preview.srcObject = stream;
+                                    await preview.play();
+
+                                    try {
+                                        await ensureDetector();
+                                    } catch (error) {
+                                        detector = null;
+                                    }
+
+                                    running = true;
+                                    scanFrame();
+                                } catch (error) {
+                                    stopScanner();
+                                    alert('Allow camera access in the browser permission popup (or click the camera icon in the address bar and set this site to Allow).');
+                                }
+                            }
+
+                            openButton.addEventListener('click', startScanner);
+
+                            if (closeButton) {
+                                closeButton.addEventListener('click', stopScanner);
+                            }
+
+                            window.addEventListener('beforeunload', stopScanner);
+                        })();
+                    </script>
+                </div>
+
+                <!-- --Book_Mark - (PDF417_Scanner_Window Styles)--------------------- -->
+                <style aria-label="PDF417_Scanner_Window_Style">
+                    .PDF417_Scanner_Window {
+                        position: absolute;
+                        width: 300px;
+                        height: 300px;
+                        background-color: rgba(0, 0, 0, 0.281);
+                        backdrop-filter: var(--Main_UI_Backdrop);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        overflow: hidden;
+                        display: none;
+                    }
+
+                    #PDF417_Scanner_Close {
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: none;
+                        border: none;
+                        outline: none;
+                        cursor: pointer;
+                        color: var(--Main_UI_Text_Color);
+                        font-size: var(--Main_Font_Size);
+                    }
+                </style>
+
+                <!-- --Book_Mark - (PDF417_Scanner_Window Script)--------------------- -->
+                <script aria-label="PDF417_Scanner_Window_Script">
+
+                    document.getElementById('PDF417_Scanner_Close').addEventListener('click', function() {
+                        document.querySelector('.Scanner_Windows').style.display = 'none';
+                        document.querySelector('.PDF417_Scanner_Window').style.display = 'none';
+                    });
+
+                    
+                </script>
+            </div>
+
+            <!-- --Book_Mark - (Log_Window Container)--------------------- -->
+            <div class="Log_Window">
+
+                <!-- --Book_Mark - (Log_Window Close Button)--------------------- -->
+                <button id="Log_Window_Close">[Close]</button>
+                <div class="Log_Terminal">
+                    <p id="Terminal_Text">Superhott.xxx</p>
+
+                    <style aria-label="Log_Window_Terminal_Style">
+
+                        .Log_Terminal {
+                            width: 100%;
+                            height: 100%;
+                            background-color: black;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        }
+
+                        .Log_Terminal #Terminal_Text {
+                            position: absolute;
+                            bottom: 10px;
+                            width: calc(100% - 20px);
+                            height: calc(100% - 40px);
+                            color: var(--Main_UI_Text_Color);
+                            font-size: var(--Main_Font_Size);
+                        }
+                    </style>
+                    <script aria-label="Log_Window_Terminal_Script">
+                        (function () {
+                            var terminal = document.getElementById('Terminal_Text');
+                            var scanner = document.querySelector('.PDF417_Scanner');
+
+                            function escapeHtml(value) {
+                                return String(value || '')
+                                    .replace(/&/g, '&amp;')
+                                    .replace(/</g, '&lt;')
+                                    .replace(/>/g, '&gt;');
+                            }
+
+                            function renderTerminal(lines) {
+                                var content = ['Superhott.xxx', '', 'User:\\> '].concat(lines || []);
+                                terminal.innerHTML = content.map(escapeHtml).join('<br>') + '<br><span class="cursor">_</span>';
+                            }
+
+                            function formatScan(detail) {
+                                if (!detail || !detail.parsed) {
+                                    return ['Scan complete, but no parsed payload was available.'];
+                                }
+
+                                var parsed = detail.parsed;
+                                return [
+                                    'Scan successful:',
+                                    'Name: ' + (parsed.fullName || '-'),
+                                    'License #: ' + (parsed.licenseNumber || '-'),
+                                    'DOB: ' + (parsed.dateOfBirth || '-'),
+                                    'Expires: ' + (parsed.expirationDate || '-'),
+                                    'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', ')
+                                ];
+                            }
+
+                            renderTerminal();
+
+                            if (scanner) {
+                                scanner.addEventListener('pdf417-scan', function (event) {
+                                    renderTerminal(formatScan(event.detail));
+                                });
+                            }
+
+                            setInterval(function () {
+                                var cursor = document.querySelector('.cursor');
+                                if (!cursor) {
+                                    return;
+                                }
+                                cursor.style.visibility = cursor.style.visibility === 'hidden' ? 'visible' : 'hidden';
+                            }, 500);
+                        })();
+                    </script>
+                    
+                    <style aria-label="Cursor_Style">
+                        .cursor {
+                            animation: none;
+                        }
+                    </style>
+                </div>
+
+                <!-- --Book_Mark - (Log_Window Styles)--------------------- -->
+                <style aria-label="Log_Window_Style">
+                    .Log_Window {
+                        position: absolute;
+                        width: 300px;
+                        height: 400px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        overflow: hidden;
+                        display: none;
+                    }
+
+                    #Log_Window_Close {
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: none;
+                        border: none;
+                        outline: none;
+                        cursor: pointer;
+                        color: var(--Main_UI_Text_Color);
+                        font-size: var(--Main_Font_Size);
+                    }
+                </style>
+                <!-- --Book_Mark - (Log_Window Script)--------------------- -->
+                <script aria-label="Log_Window_Script">
+
+                </script>
+            </div>
+
+            <!-- --Book_Mark - (Scanner_Windows Styles)--------------------- -->
+            <style aria-label="Scanner_Windows_Style">
+                .Scanner_Windows {
+                    position: absolute;
+                    width: 100dvw;
+                    height: 100dvh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    overflow: hidden;
+                    background-color: rgba(0, 0, 0, 0.226);
+                    backdrop-filter: var(--Main_UI_Backdrop);
+                    display: none;
+                }
+            </style>
+
+            <!-- --Book_Mark - (Scanner_Windows Script)--------------------- -->
+            <script aria-label="Scanner_Windows_Script">
+
+            </script>
+            
+        </div>
+
+        <!-- --Book_Mark - (Id_Scanner Styles)--------------------- -->
+        <style aria-label="Id_Scanner_Style">
+            .Id_Scanner {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+            }
+        </style>
+    </div>
+</body>
+</html>
