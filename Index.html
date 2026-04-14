@@ -770,6 +770,7 @@
                             var scannerWindows = document.querySelector('.Scanner_Windows');
                             var scannerWindow = document.querySelector('.PDF417_Scanner_Window');
                             var logWindow = document.querySelector('.Log_Window');
+                            var pendingEligibilityTimer = null;
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -780,12 +781,65 @@
 
                             function renderTerminal(lines) {
                                 var content = ['Superhott.xxx', '', 'User:\\> '].concat(lines || []);
-                                terminal.innerHTML = content.map(escapeHtml).join('<br>') + '<br><span class="cursor">_</span>';
+                                terminal.innerHTML = content.map(escapeHtml).join('<br><br>') + '<br><span class="cursor">_</span>';
+                            }
+
+                            function parseDobToDate(rawDob) {
+                                var digits = String(rawDob || '').replace(/\D/g, '');
+                                if (digits.length !== 8) {
+                                    return null;
+                                }
+
+                                var year;
+                                var month;
+                                var day;
+
+                                if (/^(19|20)\d{2}/.test(digits)) {
+                                    year = Number(digits.slice(0, 4));
+                                    month = Number(digits.slice(4, 6));
+                                    day = Number(digits.slice(6, 8));
+                                } else {
+                                    month = Number(digits.slice(0, 2));
+                                    day = Number(digits.slice(2, 4));
+                                    year = Number(digits.slice(4, 8));
+                                }
+
+                                var date = new Date(year, month - 1, day);
+                                if (
+                                    date.getFullYear() !== year ||
+                                    date.getMonth() !== month - 1 ||
+                                    date.getDate() !== day
+                                ) {
+                                    return null;
+                                }
+
+                                return date;
+                            }
+
+                            function calculateAge(rawDob) {
+                                var birthDate = parseDobToDate(rawDob);
+                                if (!birthDate) {
+                                    return null;
+                                }
+
+                                var today = new Date();
+                                var age = today.getFullYear() - birthDate.getFullYear();
+                                var monthDiff = today.getMonth() - birthDate.getMonth();
+                                var dayDiff = today.getDate() - birthDate.getDate();
+
+                                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                                    age -= 1;
+                                }
+
+                                return age;
                             }
 
                             function formatScan(detail) {
                                 if (!detail || !detail.parsed) {
-                                    return ['Scan complete, but no parsed payload was available.'];
+                                    return {
+                                        baseLines: ['Scan complete, but no parsed payload was available.'],
+                                        delayedLines: []
+                                    };
                                 }
 
                                 var parsed = detail.parsed;
@@ -801,32 +855,65 @@
                                 );
 
                                 if (!hasParsedData) {
-                                    return [
-                                        'Scan successful (raw payload captured):',
-                                        String((detail && detail.raw) || '-').slice(0, 700)
-                                    ];
+                                    return {
+                                        baseLines: [
+                                            'Scan successful (raw payload captured):',
+                                            '',
+                                            String((detail && detail.raw) || '-').slice(0, 700)
+                                        ],
+                                        delayedLines: []
+                                    };
                                 }
 
-                                return [
-                                    'Scan successful:',
-                                    'Full Name: ' + (parsed.fullName || '-'),
-                                    'License Number: ' + (parsed.licenseNumber || '-'),
-                                    'DOB: ' + (parsed.dateOfBirth || '-'),
-                                    'Expires: ' + (parsed.expirationDate || '-'),
-                                    'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', '),
-                                    'Raw Size: ' + String((detail && detail.raw ? detail.raw.length : 0)) + ' chars'
-                                ];
+                                var age = calculateAge(parsed.dateOfBirth);
+                                var eligibilityMessage = age !== null && age >= 21
+                                    ? 'you are eligible to create an account'
+                                    : 'must be 21 or older to enter';
+
+                                return {
+                                    baseLines: [
+                                        'Scan successful:',
+                                        '',
+                                        'Full Name: ' + (parsed.fullName || '-'),
+                                        'License Number: ' + (parsed.licenseNumber || '-'),
+                                        'DOB: ' + (parsed.dateOfBirth || '-'),
+                                        'Expires: ' + (parsed.expirationDate || '-'),
+                                        'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', '),
+                                        '',
+                                        'Raw Size: ' + String((detail && detail.raw ? detail.raw.length : 0)) + ' chars'
+                                    ],
+                                    delayedLines: [
+                                        '',
+                                        'Age Verification:',
+                                        eligibilityMessage,
+                                        'Card Age: ' + (age === null ? '-' : String(age))
+                                    ]
+                                };
                             }
 
                             renderTerminal();
 
                             if (scanner) {
                                 scanner.addEventListener('pdf417-scan', function (event) {
-                                    renderTerminal(formatScan(event.detail));
+                                    var formatted = formatScan(event.detail);
+                                    renderTerminal(formatted.baseLines);
+
+                                    if (pendingEligibilityTimer) {
+                                        clearTimeout(pendingEligibilityTimer);
+                                        pendingEligibilityTimer = null;
+                                    }
+
+                                    if (formatted.delayedLines && formatted.delayedLines.length) {
+                                        pendingEligibilityTimer = setTimeout(function () {
+                                            renderTerminal(formatted.baseLines.concat(formatted.delayedLines));
+                                            pendingEligibilityTimer = null;
+                                        }, 1000);
+                                    }
 
                                     if (scannerWindow) {
                                         scannerWindow.style.display = 'none';
                                     }
+
                                     if (scannerWindows) {
                                         scannerWindows.style.display = 'flex';
                                     }
