@@ -778,9 +778,20 @@
                                     .replace(/>/g, '&gt;');
                             }
 
+                            function renderLine(line) {
+                                if (line && typeof line === 'object' && line.text !== undefined) {
+                                    var safeText = escapeHtml(line.text);
+                                    if (line.color) {
+                                        return '<span style="color:' + escapeHtml(line.color) + '">' + safeText + '</span>';
+                                    }
+                                    return safeText;
+                                }
+                                return escapeHtml(line);
+                            }
+
                             function renderTerminal(lines) {
                                 var content = ['Superhott.xxx', 'User:\\> '].concat(lines || []);
-                                terminal.innerHTML = content.map(escapeHtml).join('<br>') + '<br><span class="cursor">_</span>';
+                                terminal.innerHTML = content.map(renderLine).join('<br>') + '<br><span class="cursor">_</span>';
                             }
 
                             function parseDobToDate(rawDob) {
@@ -867,9 +878,11 @@
                                 }
 
                                 var age = calculateAge(parsed.dateOfBirth);
-                                var eligibilityMessage = age !== null && age >= 21
+                                var isEligible = age !== null && age >= 21;
+                                var eligibilityMessage = isEligible
                                     ? 'you are eligible to create an account'
                                     : 'must be 21 or older to enter';
+                                var verificationColor = isEligible ? '#00ff99' : '#ff4d4d';
 
                                 return {
                                     baseLines: [
@@ -883,9 +896,9 @@
                                     ],
                                     delayedLines: [
                                         '',
-                                        'Age Verification:',
-                                        eligibilityMessage,
-                                        'User Age: ' + (age === null ? '-' : String(age))
+                                        { text: 'Age Verification:', color: verificationColor },
+                                        { text: eligibilityMessage, color: verificationColor },
+                                        { text: 'User Age: ' + (age === null ? '-' : String(age)), color: verificationColor }
                                     ]
                                 };
                             }
