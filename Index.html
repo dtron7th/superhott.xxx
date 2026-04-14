@@ -455,7 +455,6 @@
                                 const parsed = scan.parsed;
                                 const lines = [
                                     'Superhott.xxx',
-                                    '',
                                     'User:\\> ',
                                     'Scan successful:',
                                     'Full Name: ' + (parsed.fullName || '-'),
@@ -780,8 +779,8 @@
                             }
 
                             function renderTerminal(lines) {
-                                var content = ['Superhott.xxx', '', 'User:\\> '].concat(lines || []);
-                                terminal.innerHTML = content.map(escapeHtml).join('<br><br>') + '<br><span class="cursor">_</span>';
+                                var content = ['Superhott.xxx', 'User:\\> '].concat(lines || []);
+                                terminal.innerHTML = content.map(escapeHtml).join('<br>') + '<br><span class="cursor">_</span>';
                             }
 
                             function parseDobToDate(rawDob) {
@@ -837,7 +836,10 @@
                             function formatScan(detail) {
                                 if (!detail || !detail.parsed) {
                                     return {
-                                        baseLines: ['Scan complete, but no parsed payload was available.'],
+                                        baseLines: [
+                                            'Scan successful (raw payload captured):',
+                                            String((detail && detail.raw) || '-').slice(0, 700)
+                                        ],
                                         delayedLines: []
                                     };
                                 }
@@ -858,7 +860,6 @@
                                     return {
                                         baseLines: [
                                             'Scan successful (raw payload captured):',
-                                            '',
                                             String((detail && detail.raw) || '-').slice(0, 700)
                                         ],
                                         delayedLines: []
@@ -873,13 +874,11 @@
                                 return {
                                     baseLines: [
                                         'Scan successful:',
-                                        '',
                                         'Full Name: ' + (parsed.fullName || '-'),
                                         'License Number: ' + (parsed.licenseNumber || '-'),
                                         'DOB: ' + (parsed.dateOfBirth || '-'),
                                         'Expires: ' + (parsed.expirationDate || '-'),
                                         'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', '),
-                                        '',
                                         'Raw Size: ' + String((detail && detail.raw ? detail.raw.length : 0)) + ' chars'
                                     ],
                                     delayedLines: [
