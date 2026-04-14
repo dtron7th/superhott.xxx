@@ -329,6 +329,8 @@
 
                             const terminal = document.getElementById('Terminal_Text');
                             const logWindow = document.querySelector('.Log_Window');
+                            const scannerWindow = document.querySelector('.PDF417_Scanner_Window');
+                            const scannerWindows = document.querySelector('.Scanner_Windows');
 
                             function debugBeep() {
                                 try {
@@ -467,6 +469,18 @@
                                 scannerHost.dispatchEvent(new CustomEvent('pdf417-scan', {
                                     detail: window.lastPDF417Scan
                                 }));
+
+                                stopScanner();
+
+                                if (scannerWindow) {
+                                    scannerWindow.style.display = 'none';
+                                }
+                                if (scannerWindows) {
+                                    scannerWindows.style.display = 'none';
+                                }
+                                if (logWindow) {
+                                    logWindow.style.display = 'flex';
+                                }
                             }
 
                             async function ensureNativeDetector() {
