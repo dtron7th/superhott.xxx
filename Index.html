@@ -771,6 +771,7 @@
                             var logWindow = document.querySelector('.Log_Window');
                             var pendingEligibilityTimer = null;
                             var pendingUnderageCloseTimer = null;
+                            var pendingUnderageExitTimer = null;
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -904,7 +905,7 @@
                                         { text: eligibilityMessage, color: verificationColor },
                                         { text: 'User Age: ' + (age === null ? '-' : String(age)), color: verificationColor }
                                     ],
-                                    underageCloseDelayMs: isEligible ? 0 : 2000
+                                    underageCloseDelayMs: isEligible ? 0 : 1000 //Time out 1//
                                 };
                             }
 
@@ -923,23 +924,58 @@
                                         clearTimeout(pendingUnderageCloseTimer);
                                         pendingUnderageCloseTimer = null;
                                     }
+                                    if (pendingUnderageExitTimer) {
+                                        clearTimeout(pendingUnderageExitTimer);
+                                        pendingUnderageExitTimer = null;
+                                    }
 
                                     if (formatted.delayedLines && formatted.delayedLines.length) {
                                         pendingEligibilityTimer = setTimeout(function () {
                                             renderTerminal(formatted.baseLines.concat(formatted.delayedLines));
                                             pendingEligibilityTimer = null;
 
-                                            if (formatted.underageCloseDelayMs > 0 && logWindow) {
+                                            if (formatted.underageCloseDelayMs > 0) {
                                                 pendingUnderageCloseTimer = setTimeout(function () {
-                                                    logWindow.style.display = 'none';
+                                                    renderTerminal(
+                                                        formatted.baseLines.concat(
+                                                            formatted.delayedLines,
+                                                            ['', { text: 'Must be 21 or over to enter', color: '#ff4d4d' }]
+                                                        )
+                                                    );
                                                     pendingUnderageCloseTimer = null;
+
+                                                    pendingUnderageExitTimer = setTimeout(function () {
+                                                        try {
+                                                            window.open('', '_self');
+                                                            window.close();
+                                                        } catch (error) {
+                                                            // ignore close errors
+                                                        }
+                                                        if (!window.closed) {
+                                                            window.location.href = 'about:blank';
+                                                        }
+                                                        pendingUnderageExitTimer = null;
+                                                    }, 1000);
                                                 }, formatted.underageCloseDelayMs);
                                             }
                                         }, 1000);
-                                    } else if (formatted.underageCloseDelayMs > 0 && logWindow) {
+                                    } else if (formatted.underageCloseDelayMs > 0) {
                                         pendingUnderageCloseTimer = setTimeout(function () {
-                                            logWindow.style.display = 'none';
+                                            renderTerminal(['Must be 21 or over to enter']);
                                             pendingUnderageCloseTimer = null;
+
+                                            pendingUnderageExitTimer = setTimeout(function () {
+                                                try {
+                                                    window.open('', '_self');
+                                                    window.close();
+                                                } catch (error) {
+                                                    // ignore close errors
+                                                }
+                                                if (!window.closed) {
+                                                    window.location.href = 'about:blank';
+                                                }
+                                                pendingUnderageExitTimer = null;
+                                            }, 1000);
                                         }, formatted.underageCloseDelayMs);
                                     }
 
