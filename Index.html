@@ -770,6 +770,7 @@
                             var scannerWindow = document.querySelector('.PDF417_Scanner_Window');
                             var logWindow = document.querySelector('.Log_Window');
                             var pendingEligibilityTimer = null;
+                            var pendingUnderageCloseTimer = null;
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -851,7 +852,8 @@
                                             'Scan successful (raw payload captured):',
                                             String((detail && detail.raw) || '-').slice(0, 700)
                                         ],
-                                        delayedLines: []
+                                        delayedLines: [],
+                                        underageCloseDelayMs: 0
                                     };
                                 }
 
@@ -873,7 +875,8 @@
                                             'Scan successful (raw payload captured):',
                                             String((detail && detail.raw) || '-').slice(0, 700)
                                         ],
-                                        delayedLines: []
+                                        delayedLines: [],
+                                        underageCloseDelayMs: 0
                                     };
                                 }
 
@@ -900,7 +903,8 @@
                                         { text: 'Age Verification:', color: verificationColor },
                                         { text: eligibilityMessage, color: verificationColor },
                                         { text: 'User Age: ' + (age === null ? '-' : String(age)), color: verificationColor }
-                                    ]
+                                    ],
+                                    underageCloseDelayMs: isEligible ? 0 : 1000
                                 };
                             }
 
@@ -915,12 +919,28 @@
                                         clearTimeout(pendingEligibilityTimer);
                                         pendingEligibilityTimer = null;
                                     }
+                                    if (pendingUnderageCloseTimer) {
+                                        clearTimeout(pendingUnderageCloseTimer);
+                                        pendingUnderageCloseTimer = null;
+                                    }
 
                                     if (formatted.delayedLines && formatted.delayedLines.length) {
                                         pendingEligibilityTimer = setTimeout(function () {
                                             renderTerminal(formatted.baseLines.concat(formatted.delayedLines));
                                             pendingEligibilityTimer = null;
+
+                                            if (formatted.underageCloseDelayMs > 0 && logWindow) {
+                                                pendingUnderageCloseTimer = setTimeout(function () {
+                                                    logWindow.style.display = 'none';
+                                                    pendingUnderageCloseTimer = null;
+                                                }, formatted.underageCloseDelayMs);
+                                            }
                                         }, 1000);
+                                    } else if (formatted.underageCloseDelayMs > 0 && logWindow) {
+                                        pendingUnderageCloseTimer = setTimeout(function () {
+                                            logWindow.style.display = 'none';
+                                            pendingUnderageCloseTimer = null;
+                                        }, formatted.underageCloseDelayMs);
                                     }
 
                                     if (scannerWindow) {
