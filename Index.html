@@ -760,6 +760,7 @@
                             height: calc(100% - 40px);
                             color: var(--Main_UI_Text_Color);
                             font-size: var(--Main_Font_Size);
+                            overflow-y: auto;
                         }
                     </style>
                     <script aria-label="Log_Window_Terminal_Script">
@@ -788,6 +789,9 @@
                                 }
                                 if (line && typeof line === 'object' && line.text !== undefined) {
                                     var safeText = escapeHtml(line.text);
+                                    if (line.anchorId) {
+                                        return '<span data-anchor="' + escapeHtml(line.anchorId) + '">' + safeText + '</span>';
+                                    }
                                     if (line.color) {
                                         return '<span style="color:' + escapeHtml(line.color) + '">' + safeText + '</span>';
                                     }
@@ -805,6 +809,15 @@
                                 return (lines || []).filter(function (line) {
                                     return !(line && typeof line === 'object' && line.promptLabel);
                                 });
+                            }
+
+                            function scrollAnchorToMiddle(anchorId) {
+                                var anchor = terminal.querySelector('[data-anchor="' + anchorId + '"]');
+                                if (!anchor) {
+                                    return;
+                                }
+                                var targetTop = anchor.offsetTop - (terminal.clientHeight / 2) + (anchor.clientHeight / 2);
+                                terminal.scrollTop = Math.max(0, targetTop);
                             }
 
                             function attachAccountPromptHandler(formatted, currentLines) {
@@ -829,6 +842,7 @@
                                     if (typedLower === 'yes') {
                                         outputLines = outputLines.concat(formatted.nextSectionLines || []);
                                         renderTerminal(outputLines);
+                                        scrollAnchorToMiddle('next-section-anchor');
                                         return;
                                     }
 
@@ -968,7 +982,17 @@
 
                                 var nextSectionLines = [
                                     '',
-                                    'What I\'m going to do is take your full name, you\'re license number and your DOB...Then im going to combine those values and create a SHA-256 output, This is how your account will be created. its the most secure way of making your account'
+                                    { text: 'What I\'m going to do is take your full name, you\'re license number and your DOB...Then im going to combine those values and create a SHA-256 output, This is how your account will be created. its the most secure way of making your account', anchorId: 'next-section-anchor' },
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    '',
+                                    ''
                                 ];
 
                                 return {
