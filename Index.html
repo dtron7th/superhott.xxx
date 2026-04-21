@@ -760,7 +760,6 @@
                             height: calc(100% - 40px);
                             color: var(--Main_UI_Text_Color);
                             font-size: var(--Main_Font_Size);
-                            overflow-y: auto;
                         }
                     </style>
                     <script aria-label="Log_Window_Terminal_Script">
@@ -775,6 +774,7 @@
                             var pendingUnderageExitTimer = null;
                             var pendingAccountPromptTimer = null;
                             var pendingNoCloseTimer = null;
+                            var pendingYesFlowTimers = [];
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -802,125 +802,24 @@
                                 terminal.innerHTML = content.map(renderLine).join('<br>');
                             }
 
-                            function scrollTerminalByLines(lineCount) {
-                                if (!terminal || !lineCount) {
-                                    return;
-                                }
-                                var styles = window.getComputedStyle(terminal);
-                                var lineHeight = parseFloat(styles.lineHeight);
-                                if (!lineHeight || !isFinite(lineHeight)) {
-                                    var fontSize = parseFloat(styles.fontSize);
-                                    lineHeight = (fontSize && isFinite(fontSize) ? fontSize : 16) * 1.2;
-                                }
-                                terminal.scrollTop += Math.round(lineHeight * lineCount);
-                            }
-
                             function stripPromptLines(lines) {
                                 return (lines || []).filter(function (line) {
                                     return !(line && typeof line === 'object' && line.promptLabel);
                                 });
                             }
 
-                            function attachAccountPromptHandler(formatted, currentLines) {
-                                var promptInput = terminal.querySelector('.terminal-prompt-input');
-                                if (!promptInput) {
-                                    return;
-                                }
-
-                                promptInput.focus();
-
-                                promptInput.addEventListener('keydown', function (event) {
-                                    if (event.key !== 'Enter') {
-                                        return;
-                                    }
-
-                                    event.preventDefault();
-                                    var typedValue = String(promptInput.value || '').trim();
-                                    var typedLower = typedValue.toLowerCase();
-                                    var baseContextLines = stripPromptLines(currentLines);
-                                    var outputLines = baseContextLines.concat(['User:\\> ' + typedValue]);
-
-                                    if (typedLower === 'yes') {
-                                        outputLines = outputLines.concat(formatted.nextSectionLines || []);
-                                        renderTerminal(outputLines);
-                                        terminal.scrollTop = terminal.scrollHeight;
-                                        return;
-                                    }
-
-                                    if (typedLower === 'no') {
-                                        outputLines = outputLines.concat(['Account creation canceled.']);
-                                        renderTerminal(outputLines);
-
-                                        if (pendingNoCloseTimer) {
-                                            clearTimeout(pendingNoCloseTimer);
-                                            pendingNoCloseTimer = null;
-                                        }
-                                        pendingNoCloseTimer = setTimeout(function () {
-                                            if (logWindow) {
-                                                logWindow.style.display = 'none';
-                                            }
-                                            if (scannerWindows) {
-                                                scannerWindows.style.display = 'none';
-                                            }
-                                            pendingNoCloseTimer = null;
-                                        }, 2000);
-                                        return;
-                                    }
-
-                                    outputLines = outputLines.concat(['Unknown Command', '', { promptLabel: 'User:\\>' }]);
-                                    renderTerminal(outputLines);
-                                    attachAccountPromptHandler(formatted, outputLines);
-                                });
-                            }
-
-                            function parseDobToDate(rawDob) {
-                                var digits = String(rawDob || '').replace(/\D/g, '');
-                                if (digits.length !== 8) {
+                            async function sha256Hex(value) {
+                                if (!window.crypto || !window.crypto.subtle || typeof TextEncoder === 'undefined') {
                                     return null;
                                 }
 
-                                var year;
-                                var month;
-                                var day;
-
-                                if (/^(19|20)\d{2}/.test(digits)) {
-                                    year = Number(digits.slice(0, 4));
-                                    month = Number(digits.slice(4, 6));
-                                    day = Number(digits.slice(6, 8));
-                                } else {
-                                    month = Number(digits.slice(0, 2));
-                                    day = Number(digits.slice(2, 4));
-                                    year = Number(digits.slice(4, 8));
-                                }
-
-                                var date = new Date(year, month - 1, day);
-                                if (
-                                    date.getFullYear() !== year ||
-                                    date.getMonth() !== month - 1 ||
-                                    date.getDate() !== day
-                                ) {
-                                    return null;
-                                }
-
-                                return date;
-                            }
-
-                            function calculateAge(rawDob) {
-                                var birthDate = parseDobToDate(rawDob);
-                                if (!birthDate) {
-                                    return null;
-                                }
-
-                                var today = new Date();
-                                var age = today.getFullYear() - birthDate.getFullYear();
-                                var monthDiff = today.getMonth() - birthDate.getMonth();
-                                var dayDiff = today.getDate() - birthDate.getDate();
-
-                                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-                                    age -= 1;
-                                }
-
-                                return age;
+                                var input = String(value || '');
+                                var encoded = new TextEncoder().encode(input);
+                                var digestBuffer = await window.crypto.subtle.digest('SHA-256', encoded);
+                                var digestArray = Array.from(new Uint8Array(digestBuffer));
+                                return digestArray.map(function (byte) {
+                                    return byte.toString(16).padStart(2, '0');
+                                }).join('');
                             }
 
                             function formatScan(detail) {
@@ -1005,9 +904,140 @@
                                     ],
                                     accountPromptLines: accountPromptLines,
                                     nextSectionLines: nextSectionLines,
+                                    fullNameForHash: parsed.fullName || '-',
                                     accountPromptDelayMs: accountPromptLines.length ? 1000 : 0,
                                     underageCloseDelayMs: isEligible ? 0 : 1000 //Time out 1//
                                 };
+                            }
+
+                            function attachAccountPromptHandler(formatted, currentLines) {
+                                var promptInput = terminal.querySelector('.terminal-prompt-input');
+                                if (!promptInput) {
+                                    return;
+                                }
+
+                                promptInput.focus();
+
+                                promptInput.addEventListener('keydown', async function (event) {
+                                    if (event.key !== 'Enter') {
+                                        return;
+                                    }
+
+                                    event.preventDefault();
+                                    var typedValue = String(promptInput.value || '').trim();
+                                    var typedLower = typedValue.toLowerCase();
+                                    var baseContextLines = stripPromptLines(currentLines);
+                                    var outputLines = baseContextLines.concat(['User:\\> ' + typedValue]);
+
+                                    if (typedLower === 'yes') {
+                                        var fullNameValue = formatted.fullNameForHash || '-';
+                                        var fullNameHash = await sha256Hex(fullNameValue);
+                                        var sectionOneLines = formatted.nextSectionLines || [];
+                                        var sectionTwoLines = ['', 'Full Name: ' + fullNameValue];
+                                        var sectionThreeLines = ['', 'SHA-256: ' + (fullNameHash || 'unavailable')];
+
+                                        clearPendingYesFlowTimers();
+                                        renderTerminal(outputLines);
+
+                                        var yesStepOneTimer = setTimeout(function () {
+                                            renderTerminal(outputLines.concat(sectionOneLines));
+
+                                            var yesStepTwoTimer = setTimeout(function () {
+                                                renderTerminal(outputLines.concat(sectionOneLines, sectionTwoLines));
+
+                                                var yesStepThreeTimer = setTimeout(function () {
+                                                    renderTerminal(outputLines.concat(sectionOneLines, sectionTwoLines, sectionThreeLines));
+                                                    clearPendingYesFlowTimers();
+                                                }, 1000);
+                                                pendingYesFlowTimers.push(yesStepThreeTimer);
+                                            }, 1000);
+                                            pendingYesFlowTimers.push(yesStepTwoTimer);
+                                        }, 1000);
+                                        pendingYesFlowTimers.push(yesStepOneTimer);
+                                        return;
+                                    }
+
+                                    if (typedLower === 'no') {
+                                        outputLines = outputLines.concat(['Account creation canceled.']);
+                                        renderTerminal(outputLines);
+
+                                        if (pendingNoCloseTimer) {
+                                            clearTimeout(pendingNoCloseTimer);
+                                            pendingNoCloseTimer = null;
+                                        }
+                                        pendingNoCloseTimer = setTimeout(function () {
+                                            if (logWindow) {
+                                                logWindow.style.display = 'none';
+                                            }
+                                            if (scannerWindows) {
+                                                scannerWindows.style.display = 'none';
+                                            }
+                                            pendingNoCloseTimer = null;
+                                        }, 2000);
+                                        return;
+                                    }
+
+                                    outputLines = outputLines.concat(['Unknown Command', '', { promptLabel: 'User:\\>' }]);
+                                    renderTerminal(outputLines);
+                                    attachAccountPromptHandler(formatted, outputLines);
+                                });
+                            }
+
+                            function parseDobToDate(rawDob) {
+                                var digits = String(rawDob || '').replace(/\D/g, '');
+                                if (digits.length !== 8) {
+                                    return null;
+                                }
+
+                                var year;
+                                var month;
+                                var day;
+
+                                if (/^(19|20)\d{2}/.test(digits)) {
+                                    year = Number(digits.slice(0, 4));
+                                    month = Number(digits.slice(4, 6));
+                                    day = Number(digits.slice(6, 8));
+                                } else {
+                                    month = Number(digits.slice(0, 2));
+                                    day = Number(digits.slice(2, 4));
+                                    year = Number(digits.slice(4, 8));
+                                }
+
+                                var date = new Date(year, month - 1, day);
+                                if (
+                                    date.getFullYear() !== year ||
+                                    date.getMonth() !== month - 1 ||
+                                    date.getDate() !== day
+                                ) {
+                                    return null;
+                                }
+
+                                return date;
+                            }
+
+                            function calculateAge(rawDob) {
+                                var birthDate = parseDobToDate(rawDob);
+                                if (!birthDate) {
+                                    return null;
+                                }
+
+                                var today = new Date();
+                                var age = today.getFullYear() - birthDate.getFullYear();
+                                var monthDiff = today.getMonth() - birthDate.getMonth();
+                                var dayDiff = today.getDate() - birthDate.getDate();
+
+                                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                                    age -= 1;
+                                }
+
+                                return age;
+                            }
+
+                            function clearPendingYesFlowTimers() {
+                                pendingYesFlowTimers.forEach(function (timerId) {
+                                    clearTimeout(timerId);
+                                });
+                                pendingYesFlowTimers = [];
                             }
 
                             renderTerminal();
@@ -1037,6 +1067,7 @@
                                         clearTimeout(pendingNoCloseTimer);
                                         pendingNoCloseTimer = null;
                                     }
+                                    clearPendingYesFlowTimers();
 
                                     if (formatted.delayedLines && formatted.delayedLines.length) {
                                         pendingEligibilityTimer = setTimeout(function () {
