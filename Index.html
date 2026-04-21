@@ -773,6 +773,7 @@
                             var pendingUnderageCloseTimer = null;
                             var pendingUnderageExitTimer = null;
                             var pendingAccountPromptTimer = null;
+                            var pendingNoCloseTimer = null;
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -790,7 +791,6 @@
                                     if (line.color) {
                                         return '<span style="color:' + escapeHtml(line.color) + '">' + safeText + '</span>';
                                     }
-
                                     return safeText;
                                 }
                                 return escapeHtml(line);
@@ -798,7 +798,7 @@
 
                             function renderTerminal(lines) {
                                 var content = ['My Lesbian Story', ''].concat(lines || []);
-                                terminal.innerHTML = content.map(renderLine).join('<br>') + '<br><span class="cursor">_</span>';
+                                terminal.innerHTML = content.map(renderLine).join('<br>');
                             }
 
                             function stripPromptLines(lines) {
@@ -807,7 +807,7 @@
                                 });
                             }
 
-                            function attachAccountPromptHandler(formatted) {
+                            function attachAccountPromptHandler(formatted, currentLines) {
                                 var promptInput = terminal.querySelector('.terminal-prompt-input');
                                 if (!promptInput) {
                                     return;
@@ -823,17 +823,38 @@
                                     event.preventDefault();
                                     var typedValue = String(promptInput.value || '').trim();
                                     var typedLower = typedValue.toLowerCase();
-                                    var outputLines = formatted.baseLines.concat(
-                                        formatted.delayedLines,
-                                        stripPromptLines(formatted.accountPromptLines),
-                                        ['User:\\> ' + typedValue]
-                                    );
+                                    var baseContextLines = stripPromptLines(currentLines);
+                                    var outputLines = baseContextLines.concat(['User:\\> ' + typedValue]);
 
                                     if (typedLower === 'yes') {
                                         outputLines = outputLines.concat(formatted.nextSectionLines || []);
+                                        renderTerminal(outputLines);
+                                        return;
                                     }
 
+                                    if (typedLower === 'no') {
+                                        outputLines = outputLines.concat(['Account creation canceled.']);
+                                        renderTerminal(outputLines);
+
+                                        if (pendingNoCloseTimer) {
+                                            clearTimeout(pendingNoCloseTimer);
+                                            pendingNoCloseTimer = null;
+                                        }
+                                        pendingNoCloseTimer = setTimeout(function () {
+                                            if (logWindow) {
+                                                logWindow.style.display = 'none';
+                                            }
+                                            if (scannerWindows) {
+                                                scannerWindows.style.display = 'none';
+                                            }
+                                            pendingNoCloseTimer = null;
+                                        }, 2000);
+                                        return;
+                                    }
+
+                                    outputLines = outputLines.concat(['Unknown Command', '', { promptLabel: 'User:\\>' }]);
                                     renderTerminal(outputLines);
+                                    attachAccountPromptHandler(formatted, outputLines);
                                 });
                             }
 
@@ -997,6 +1018,10 @@
                                         clearTimeout(pendingAccountPromptTimer);
                                         pendingAccountPromptTimer = null;
                                     }
+                                    if (pendingNoCloseTimer) {
+                                        clearTimeout(pendingNoCloseTimer);
+                                        pendingNoCloseTimer = null;
+                                    }
 
                                     if (formatted.delayedLines && formatted.delayedLines.length) {
                                         pendingEligibilityTimer = setTimeout(function () {
@@ -1005,14 +1030,13 @@
 
                                             if (formatted.accountPromptLines && formatted.accountPromptLines.length) {
                                                 pendingAccountPromptTimer = setTimeout(function () {
-                                                    renderTerminal(
-                                                        formatted.baseLines.concat(
-                                                            formatted.delayedLines,
-                                                            formatted.accountPromptLines
-                                                        )
+                                                    var promptSectionLines = formatted.baseLines.concat(
+                                                        formatted.delayedLines,
+                                                        formatted.accountPromptLines
                                                     );
+                                                    renderTerminal(promptSectionLines);
                                                     pendingAccountPromptTimer = null;
-                                                    attachAccountPromptHandler(formatted);
+                                                    attachAccountPromptHandler(formatted, promptSectionLines);
                                                 }, formatted.accountPromptDelayMs || 1000);
                                             }
 
@@ -1074,21 +1098,10 @@
                                 });
                             }
 
-                            setInterval(function () {
-                                var cursor = document.querySelector('.cursor');
-                                if (!cursor) {
-                                    return;
-                                }
-                                cursor.style.visibility = cursor.style.visibility === 'hidden' ? 'visible' : 'hidden';
-                            }, 500);
+                            // Removed the setInterval function for cursor blink
                         })();
                     </script>
                     
-                    <style aria-label="Cursor_Style">
-                        .cursor {
-                            animation: none;
-                        }
-                    </style>
                 </div>
 
                 <!-- --Book_Mark - (Log_Window Styles)--------------------- -->
