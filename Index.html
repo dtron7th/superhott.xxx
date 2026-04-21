@@ -761,6 +761,8 @@
                             color: var(--Main_UI_Text_Color);
                             font-size: var(--Main_Font_Size);
                             overflow-y: auto;
+                            overflow-wrap: anywhere;
+                            word-break: break-word;
                         }
                     </style>
                     <script aria-label="Log_Window_Terminal_Script">
@@ -948,7 +950,17 @@
                                         var sectionOneLines = formatted.nextSectionLines || [];
                                         var stageTwoLines = ['', 'Full Name: ' + fullNameValue, '', 'SHA-256: ' + fullNameHash24];
                                         var stageThreeLines = ['', 'Full Name: ' + fullNameValue, 'License Number: ' + licenseNumberValue, '', 'SHA-256: ' + fullNameAndLicenseHash24];
-                                        var stageFourLines = ['', 'Full Name: ' + fullNameValue, 'License Number: ' + licenseNumberValue, 'DOB: ' + dobValue, '', 'SHA-256: ' + fullNameLicenseAndDobHash24];
+                                        var stageFourLines = [
+                                            '',
+                                            'Full Name: ' + fullNameValue,
+                                            'License Number: ' + licenseNumberValue,
+                                            'DOB: ' + dobValue,
+                                            '',
+                                            'SHA-256: ' + fullNameLicenseAndDobHash24,
+                                            '',
+                                            fullNameValue + ': your new account is created.',
+                                            'SHA-256 Output: ' + (fullNameLicenseAndDobHash || 'unavailable')
+                                        ];
 
                                         clearPendingYesFlowTimers();
                                         renderTerminal(outputLines);
