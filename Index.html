@@ -887,6 +887,14 @@
                                     ? 'you are eligible to create an account'
                                     : 'must be 21 or older to enter';
                                 var verificationColor = isEligible ? '#00ff99' : '#ff4d4d';
+                                var accountPromptLines = isEligible
+                                    ? [
+                                        '',
+                                        'Account Creation:',
+                                        'Do you want to create an account',
+                                        'commands = "Yes" "No"'
+                                    ]
+                                    : [];
 
                                 return {
                                     baseLines: [
@@ -904,7 +912,7 @@
                                         { text: 'Age Verification:', color: verificationColor },
                                         { text: eligibilityMessage, color: verificationColor },
                                         { text: 'User Age: ' + (age === null ? '-' : String(age)), color: verificationColor }
-                                    ],
+                                    ].concat(accountPromptLines),
                                     underageCloseDelayMs: isEligible ? 0 : 1000 //Time out 1//
                                 };
                             }
