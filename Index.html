@@ -856,6 +856,7 @@
                                         ],
                                         delayedLines: [],
                                         accountPromptLines: [],
+                                        nextSectionLines: [],
                                         accountPromptDelayMs: 0,
                                         underageCloseDelayMs: 0
                                     };
@@ -881,6 +882,7 @@
                                         ],
                                         delayedLines: [],
                                         accountPromptLines: [],
+                                        nextSectionLines: [],
                                         accountPromptDelayMs: 0,
                                         underageCloseDelayMs: 0
                                     };
@@ -896,10 +898,15 @@
                                     ? [
                                         '',
                                         'Account Creation:',
-                                        'Do you want to create an account',
-                                        'commands = "Yes" "No"'
+                                        'Do you want to create an account?',
+                                        'commands = "Yes" "No"',
+                                        'User:\\>'
                                     ]
                                     : [];
+                                var nextSectionLines = [
+                                    '',
+                                    'What I\'m going to do is take your full name, you\'re license number and your DOB...Then im going to combine those values and create a SHA-256 output, This is how your account will be created. its the most secure way of making your account'
+                                ];
 
                                 return {
                                     baseLines: [
@@ -919,6 +926,7 @@
                                         { text: 'User Age: ' + (age === null ? '-' : String(age)), color: verificationColor }
                                     ],
                                     accountPromptLines: accountPromptLines,
+                                    nextSectionLines: nextSectionLines,
                                     accountPromptDelayMs: accountPromptLines.length ? 1000 : 0,
                                     underageCloseDelayMs: isEligible ? 0 : 1000 //Time out 1//
                                 };
@@ -962,6 +970,17 @@
                                                         )
                                                     );
                                                     pendingAccountPromptTimer = null;
+
+                                                    var accountCommand = window.prompt('User:\\>', '');
+                                                    if (typeof accountCommand === 'string' && accountCommand.trim().toLowerCase() === 'yes') {
+                                                        renderTerminal(
+                                                            formatted.baseLines.concat(
+                                                                formatted.delayedLines,
+                                                                formatted.accountPromptLines,
+                                                                formatted.nextSectionLines || []
+                                                            )
+                                                        );
+                                                    }
                                                 }, formatted.accountPromptDelayMs || 1000);
                                             }
 
