@@ -946,9 +946,9 @@
                                         var fullNameLicenseAndDobHash24 = fullNameLicenseAndDobHash ? fullNameLicenseAndDobHash.slice(0, 24) : 'unavailable';
 
                                         var sectionOneLines = formatted.nextSectionLines || [];
-                                        var sectionTwoLines = ['', 'Full Name: ' + fullNameValue, '', 'SHA-256: ' + fullNameHash24];
-                                        var sectionThreeLines = ['', 'License Number: ' + licenseNumberValue, '', 'SHA-256: ' + fullNameAndLicenseHash24];
-                                        var sectionFourLines = ['', 'DOB: ' + dobValue, '', 'SHA-256: ' + fullNameLicenseAndDobHash24];
+                                        var stageTwoLines = ['', 'Full Name: ' + fullNameValue, '', 'SHA-256: ' + fullNameHash24];
+                                        var stageThreeLines = ['', 'Full Name: ' + fullNameValue, '', 'License Number: ' + licenseNumberValue, '', 'SHA-256: ' + fullNameAndLicenseHash24];
+                                        var stageFourLines = ['', 'Full Name: ' + fullNameValue, '', 'License Number: ' + licenseNumberValue, '', 'DOB: ' + dobValue, '', 'SHA-256: ' + fullNameLicenseAndDobHash24];
 
                                         clearPendingYesFlowTimers();
                                         renderTerminal(outputLines);
@@ -957,20 +957,19 @@
                                             renderTerminal(outputLines.concat(sectionOneLines));
 
                                             var yesStepTwoTimer = setTimeout(function () {
-                                                renderTerminal(outputLines.concat(sectionOneLines, sectionTwoLines));
+                                                renderTerminal(outputLines.concat(sectionOneLines, stageTwoLines));
 
                                                 var yesStepThreeTimer = setTimeout(function () {
-                                                    renderTerminal(outputLines.concat(sectionOneLines, sectionTwoLines, sectionThreeLines));
+                                                    renderTerminal(outputLines.concat(sectionOneLines, stageThreeLines));
 
                                                     var yesStepFourTimer = setTimeout(function () {
-                                                        renderTerminal(outputLines.concat(sectionOneLines, sectionTwoLines, sectionThreeLines, sectionFourLines));
+                                                        renderTerminal(outputLines.concat(sectionOneLines, stageFourLines));
                                                         clearPendingYesFlowTimers();
                                                     }, 1000);
                                                     pendingYesFlowTimers.push(yesStepFourTimer);
                                                 }, 1000);
                                                 pendingYesFlowTimers.push(yesStepThreeTimer);
                                             }, 1000);
-
                                             pendingYesFlowTimers.push(yesStepTwoTimer);
                                         }, 1000);
                                         pendingYesFlowTimers.push(yesStepOneTimer);
