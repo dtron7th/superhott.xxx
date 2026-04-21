@@ -946,9 +946,9 @@
                                         var fullNameLicenseAndDobHash24 = fullNameLicenseAndDobHash ? fullNameLicenseAndDobHash.slice(0, 24) : 'unavailable';
 
                                         var sectionOneLines = formatted.nextSectionLines || [];
-                                        var stageTwoLines = ['Full Name: ' + fullNameValue, 'SHA-256: ' + fullNameHash24];
-                                        var stageThreeLines = ['Full Name: ' + fullNameValue, 'License Number: ' + licenseNumberValue, 'SHA-256: ' + fullNameAndLicenseHash24];
-                                        var stageFourLines = ['Full Name: ' + fullNameValue, 'License Number: ' + licenseNumberValue, 'DOB: ' + dobValue, 'SHA-256: ' + fullNameLicenseAndDobHash24];
+                                        var stageTwoLines = ['', 'Full Name: ' + fullNameValue, '', 'SHA-256: ' + fullNameHash24];
+                                        var stageThreeLines = ['', 'Full Name: ' + fullNameValue, 'License Number: ' + licenseNumberValue, '', 'SHA-256: ' + fullNameAndLicenseHash24];
+                                        var stageFourLines = ['', 'Full Name: ' + fullNameValue, 'License Number: ' + licenseNumberValue, 'DOB: ' + dobValue, '', 'SHA-256: ' + fullNameLicenseAndDobHash24];
 
                                         clearPendingYesFlowTimers();
                                         renderTerminal(outputLines);
