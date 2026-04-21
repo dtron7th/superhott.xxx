@@ -819,6 +819,90 @@
                                 anchor.scrollIntoView({ block: 'center' });
                             }
 
+                            function attachAccountPromptHandler(formatted, currentLines) {
+                                var promptInput = terminal.querySelector('.terminal-prompt-input');
+                                if (!promptInput) {
+                                    return;
+                                }
+
+                                promptInput.focus();
+
+                                promptInput.addEventListener('keydown', function (event) {
+                                    if (event.key !== 'Enter') {
+                                        return;
+                                    }
+
+                                    event.preventDefault();
+                                    var typedValue = String(promptInput.value || '').trim();
+                                    var typedLower = typedValue.toLowerCase();
+                                    var baseContextLines = stripPromptLines(currentLines);
+                                    var outputLines = baseContextLines.concat(['User:\\> ' + typedValue]);
+
+                                    if (typedLower === 'yes') {
+                                        outputLines = outputLines.concat(formatted.nextSectionLines || []);
+                                        renderTerminal(outputLines);
+                                        scrollAnchorToMiddle('next-section-anchor');
+                                        return;
+                                    }
+
+                                    if (typedLower === 'no') {
+                                        outputLines = outputLines.concat(['Account creation canceled.']);
+                                        renderTerminal(outputLines);
+
+                                        if (pendingNoCloseTimer) {
+                                            clearTimeout(pendingNoCloseTimer);
+                                            pendingNoCloseTimer = null;
+                                        }
+                                        pendingNoCloseTimer = setTimeout(function () {
+                                            if (logWindow) {
+                                                logWindow.style.display = 'none';
+                                            }
+                                            if (scannerWindows) {
+                                                scannerWindows.style.display = 'none';
+                                            }
+                                            pendingNoCloseTimer = null;
+                                        }, 2000);
+                                        return;
+                                    }
+
+                                    outputLines = outputLines.concat(['Unknown Command', '', { promptLabel: 'User:\\>' }]);
+                                    renderTerminal(outputLines);
+                                    attachAccountPromptHandler(formatted, outputLines);
+                                });
+                            }
+
+                            function parseDobToDate(rawDob) {
+                                var digits = String(rawDob || '').replace(/\D/g, '');
+                                if (digits.length !== 8) {
+                                    return null;
+                                }
+
+                                var year;
+                                var month;
+                                var day;
+
+                                if (/^(19|20)\d{2}/.test(digits)) {
+                                    year = Number(digits.slice(0, 4));
+                                    month = Number(digits.slice(4, 6));
+                                    day = Number(digits.slice(6, 8));
+                                } else {
+                                    month = Number(digits.slice(0, 2));
+                                    day = Number(digits.slice(2, 4));
+                                    year = Number(digits.slice(4, 8));
+                                }
+
+                                var date = new Date(year, month - 1, day);
+                                if (
+                                    date.getFullYear() !== year ||
+                                    date.getMonth() !== month - 1 ||
+                                    date.getDate() !== day
+                                ) {
+                                    return null;
+                                }
+
+                                return date;
+                            }
+
                             function calculateAge(rawDob) {
                                 var birthDate = parseDobToDate(rawDob);
                                 if (!birthDate) {
