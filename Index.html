@@ -760,6 +760,7 @@
                             height: calc(100% - 40px);
                             color: var(--Main_UI_Text_Color);
                             font-size: var(--Main_Font_Size);
+                            overflow-y: auto;
                         }
                     </style>
                     <script aria-label="Log_Window_Terminal_Script">
@@ -800,6 +801,7 @@
                             function renderTerminal(lines) {
                                 var content = ['My Lesbian Story', ''].concat(lines || []);
                                 terminal.innerHTML = content.map(renderLine).join('<br>');
+                                terminal.scrollTop = terminal.scrollHeight;
                             }
 
                             function stripPromptLines(lines) {
