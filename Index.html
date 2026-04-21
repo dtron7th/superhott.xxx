@@ -908,6 +908,7 @@
                                     nextSectionLines: nextSectionLines,
                                     fullNameForHash: parsed.fullName || '-',
                                     licenseNumberForHash: parsed.licenseNumber || '-',
+                                    dobForHash: parsed.dateOfBirth || '-',
                                     accountPromptDelayMs: accountPromptLines.length ? 1000 : 0,
                                     underageCloseDelayMs: isEligible ? 0 : 1000 //Time out 1//
                                 };
@@ -935,15 +936,19 @@
                                     if (typedLower === 'yes') {
                                         var fullNameValue = formatted.fullNameForHash || '-';
                                         var licenseNumberValue = formatted.licenseNumberForHash || '-';
+                                        var dobValue = formatted.dobForHash || '-';
                                         var fullNameHash = await sha256Hex(fullNameValue);
                                         var fullNameAndLicenseHash = await sha256Hex(fullNameValue + licenseNumberValue);
+                                        var fullNameLicenseAndDobHash = await sha256Hex(fullNameValue + licenseNumberValue + dobValue);
 
                                         var fullNameHash24 = fullNameHash ? fullNameHash.slice(0, 24) : 'unavailable';
                                         var fullNameAndLicenseHash24 = fullNameAndLicenseHash ? fullNameAndLicenseHash.slice(0, 24) : 'unavailable';
+                                        var fullNameLicenseAndDobHash24 = fullNameLicenseAndDobHash ? fullNameLicenseAndDobHash.slice(0, 24) : 'unavailable';
 
                                         var sectionOneLines = formatted.nextSectionLines || [];
                                         var sectionTwoLines = ['', 'Full Name: ' + fullNameValue, '', 'SHA-256: ' + fullNameHash24];
                                         var sectionThreeLines = ['', 'License Number: ' + licenseNumberValue, '', 'SHA-256: ' + fullNameAndLicenseHash24];
+                                        var sectionFourLines = ['', 'DOB: ' + dobValue, '', 'SHA-256: ' + fullNameLicenseAndDobHash24];
 
                                         clearPendingYesFlowTimers();
                                         renderTerminal(outputLines);
@@ -956,10 +961,16 @@
 
                                                 var yesStepThreeTimer = setTimeout(function () {
                                                     renderTerminal(outputLines.concat(sectionOneLines, sectionTwoLines, sectionThreeLines));
-                                                    clearPendingYesFlowTimers();
+
+                                                    var yesStepFourTimer = setTimeout(function () {
+                                                        renderTerminal(outputLines.concat(sectionOneLines, sectionTwoLines, sectionThreeLines, sectionFourLines));
+                                                        clearPendingYesFlowTimers();
+                                                    }, 1000);
+                                                    pendingYesFlowTimers.push(yesStepFourTimer);
                                                 }, 1000);
                                                 pendingYesFlowTimers.push(yesStepThreeTimer);
                                             }, 1000);
+
                                             pendingYesFlowTimers.push(yesStepTwoTimer);
                                         }, 1000);
                                         pendingYesFlowTimers.push(yesStepOneTimer);
