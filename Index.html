@@ -772,6 +772,7 @@
                             var pendingEligibilityTimer = null;
                             var pendingUnderageCloseTimer = null;
                             var pendingUnderageExitTimer = null;
+                            var pendingAccountPromptTimer = null;
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -854,6 +855,8 @@
                                             String((detail && detail.raw) || '-').slice(0, 700)
                                         ],
                                         delayedLines: [],
+                                        accountPromptLines: [],
+                                        accountPromptDelayMs: 0,
                                         underageCloseDelayMs: 0
                                     };
                                 }
@@ -877,6 +880,8 @@
                                             String((detail && detail.raw) || '-').slice(0, 700)
                                         ],
                                         delayedLines: [],
+                                        accountPromptLines: [],
+                                        accountPromptDelayMs: 0,
                                         underageCloseDelayMs: 0
                                     };
                                 }
@@ -912,7 +917,9 @@
                                         { text: 'Age Verification:', color: verificationColor },
                                         { text: eligibilityMessage, color: verificationColor },
                                         { text: 'User Age: ' + (age === null ? '-' : String(age)), color: verificationColor }
-                                    ].concat(accountPromptLines),
+                                    ],
+                                    accountPromptLines: accountPromptLines,
+                                    accountPromptDelayMs: accountPromptLines.length ? 1000 : 0,
                                     underageCloseDelayMs: isEligible ? 0 : 1000 //Time out 1//
                                 };
                             }
@@ -936,11 +943,27 @@
                                         clearTimeout(pendingUnderageExitTimer);
                                         pendingUnderageExitTimer = null;
                                     }
+                                    if (pendingAccountPromptTimer) {
+                                        clearTimeout(pendingAccountPromptTimer);
+                                        pendingAccountPromptTimer = null;
+                                    }
 
                                     if (formatted.delayedLines && formatted.delayedLines.length) {
                                         pendingEligibilityTimer = setTimeout(function () {
                                             renderTerminal(formatted.baseLines.concat(formatted.delayedLines));
                                             pendingEligibilityTimer = null;
+
+                                            if (formatted.accountPromptLines && formatted.accountPromptLines.length) {
+                                                pendingAccountPromptTimer = setTimeout(function () {
+                                                    renderTerminal(
+                                                        formatted.baseLines.concat(
+                                                            formatted.delayedLines,
+                                                            formatted.accountPromptLines
+                                                        )
+                                                    );
+                                                    pendingAccountPromptTimer = null;
+                                                }, formatted.accountPromptDelayMs || 1000);
+                                            }
 
                                             if (formatted.underageCloseDelayMs > 0) {
                                                 pendingUnderageCloseTimer = setTimeout(function () {
