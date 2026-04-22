@@ -250,6 +250,33 @@
             </style>
         </div>
 
+        <div class="Counters">
+            <span id="Counters_User_Count">0 Users</span>
+            <span id="Counters_Profit_Count">Networth $0.00</span>
+            <style aria-label="Counters_Style">
+                .Counters {
+                    position: absolute;
+                    top: 580px;
+                    width: calc(100% - 40px);
+                    height: 50px;
+                    border-radius: 25px;
+                    background-color: var(--Main_UI_Background);
+                    backdrop-filter: var(--Main_UI_Backdrop);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .Counters span {
+                    margin: 0 10px;
+                    font-size: var(--Main_Font_Size);
+                    color: var(--Main_UI_Text_Color);
+                }
+            </style>
+            <script aria-label="Counters_Script">
+
+            </script>
+        </div>
         
         <!-- --Book_Mark - (Scanner_Windows Container)--------------------- -->
         <div class="Scanner_Windows">
@@ -964,7 +991,9 @@
                                             (fullNameLicenseAndDobHash || 'unavailable'),
                                             '',
                                             'Do you want to proceed with your account data...',
-                                            'Type [ Create ] to create your account or type [ Exit ] to cancel the account creation process.'
+                                            'Type [ Create ] to create your account or type [ Exit ] to cancel the account creation process.',
+                                            '',
+                                            { promptLabel: 'User:\\>' }
                                         ];
 
                                         clearPendingYesFlowTimers();
@@ -980,7 +1009,9 @@
                                                     renderTerminal(outputLines.concat(sectionOneLines, stageThreeLines));
 
                                                     var yesStepFourTimer = setTimeout(function () {
-                                                        renderTerminal(outputLines.concat(sectionOneLines, stageFourLines));
+                                                        var finalCreateExitLines = outputLines.concat(sectionOneLines, stageFourLines);
+                                                        renderTerminal(finalCreateExitLines);
+                                                        attachCreateExitPromptHandler(formatted, finalCreateExitLines);
                                                         clearPendingYesFlowTimers();
                                                     }, 1000);
                                                     pendingYesFlowTimers.push(yesStepFourTimer);
@@ -1016,6 +1047,57 @@
                                     outputLines = outputLines.concat(['Unknown Command', '', { promptLabel: 'User:\\>' }]);
                                     renderTerminal(outputLines);
                                     attachAccountPromptHandler(formatted, outputLines);
+                                });
+                            }
+
+                            function attachCreateExitPromptHandler(formatted, currentLines) {
+                                var promptInput = terminal.querySelector('.terminal-prompt-input');
+                                if (!promptInput) {
+                                    return;
+                                }
+
+                                promptInput.focus();
+
+                                promptInput.addEventListener('keydown', function (event) {
+                                    if (event.key !== 'Enter') {
+                                        return;
+                                    }
+
+                                    event.preventDefault();
+                                    var typedValue = String(promptInput.value || '').trim();
+                                    var typedLower = typedValue.toLowerCase();
+                                    var baseContextLines = stripPromptLines(currentLines);
+                                    var outputLines = baseContextLines.concat(['User:\\> ' + typedValue]);
+
+                                    if (typedLower === 'create') {
+                                        outputLines = outputLines.concat(['Account creation process complete.']);
+                                        renderTerminal(outputLines);
+                                        return;
+                                    }
+
+                                    if (typedLower === 'exit') {
+                                        outputLines = outputLines.concat(['Account creation canceled.']);
+                                        renderTerminal(outputLines);
+
+                                        if (pendingNoCloseTimer) {
+                                            clearTimeout(pendingNoCloseTimer);
+                                            pendingNoCloseTimer = null;
+                                        }
+                                        pendingNoCloseTimer = setTimeout(function () {
+                                            if (logWindow) {
+                                                logWindow.style.display = 'none';
+                                            }
+                                            if (scannerWindows) {
+                                                scannerWindows.style.display = 'none';
+                                            }
+                                            pendingNoCloseTimer = null;
+                                        }, 2000);
+                                        return;
+                                    }
+
+                                    outputLines = outputLines.concat(['Unknown Command', '', { promptLabel: 'User:\\>' }]);
+                                    renderTerminal(outputLines);
+                                    attachCreateExitPromptHandler(formatted, outputLines);
                                 });
                             }
 
