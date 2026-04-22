@@ -901,6 +901,16 @@
                                 return true;
                             }
 
+                            function clearAccountDatabase() {
+                                try {
+                                    window.localStorage.removeItem(ACCOUNT_HASH_DB_KEY);
+                                    updateUserCount();
+                                    return true;
+                                } catch (error) {
+                                    return false;
+                                }
+                            }
+
                             function formatScan(detail) {
                                 if (!detail || !detail.parsed) {
                                     return {
