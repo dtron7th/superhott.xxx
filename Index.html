@@ -1423,7 +1423,10 @@
         <div class="Account_Created_Window">
             <p id="Account_Created_Window_Title">Account Created!</p>
             <span id="Account_Created_Window_Message">An account has been found with the name 'name'.</span>
-            <button id="Account_Created_Window_Close">[ Close ]</button>
+            <div class="Account_Created_Window_Bottom_Buttons">
+                <button id="Account_Created_Window_Close">[ Login ]</button>
+                <button id="Account_Created_Window_Close">[ Close ]</button>
+            </div>
             <style aria-label="Account_Created_Window_Style">
                 .Account_Created_Window {
                     position: absolute;
@@ -1458,9 +1461,16 @@
                     
                 }
 
-                .Account_Created_Window #Account_Created_Window_Close {
+                .Account_Created_Window .Account_Created_Window_Bottom_Buttons {
                     position: absolute;
-                    bottom: 16px;
+                    bottom: 20px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 20px;
+                }
+                
+                .Account_Created_Window .Account_Created_Window_Bottom_Buttons button {
                     border: none;
                     outline: none;
                     background: transparent;
@@ -1468,6 +1478,8 @@
                     font-size: var(--Main_Font_Size);
                     cursor: pointer;
                 }
+
+                
             
             </style>
             <script aria-label="Account_Created_Window_Script">
