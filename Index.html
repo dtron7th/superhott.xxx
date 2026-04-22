@@ -799,12 +799,14 @@
                             var scannerWindows = document.querySelector('.Scanner_Windows');
                             var scannerWindow = document.querySelector('.PDF417_Scanner_Window');
                             var logWindow = document.querySelector('.Log_Window');
+                            var userCountEl = document.getElementById('Counters_User_Count');
                             var pendingEligibilityTimer = null;
                             var pendingUnderageCloseTimer = null;
                             var pendingUnderageExitTimer = null;
                             var pendingAccountPromptTimer = null;
                             var pendingNoCloseTimer = null;
                             var pendingYesFlowTimers = [];
+                            var ACCOUNT_HASH_DB_KEY = 'accountSha256Db';
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -851,6 +853,52 @@
                                 return digestArray.map(function (byte) {
                                     return byte.toString(16).padStart(2, '0');
                                 }).join('');
+                            }
+
+                            function loadAccountHashDb() {
+                                try {
+                                    var raw = window.localStorage.getItem(ACCOUNT_HASH_DB_KEY);
+                                    var parsed = JSON.parse(raw || '[]');
+                                    if (!Array.isArray(parsed)) {
+                                        return [];
+                                    }
+                                    return parsed.filter(function (item) {
+                                        return typeof item === 'string' && item.length === 64;
+                                    });
+                                } catch (error) {
+                                    return [];
+                                }
+                            }
+
+                            function saveAccountHashDb(hashList) {
+                                try {
+                                    window.localStorage.setItem(ACCOUNT_HASH_DB_KEY, JSON.stringify(hashList));
+                                } catch (error) {
+                                    // ignore storage write errors
+                                }
+                            }
+
+                            function updateUserCount() {
+                                if (!userCountEl) {
+                                    return;
+                                }
+                                var count = loadAccountHashDb().length;
+                                userCountEl.textContent = String(count) + ' Users';
+                            }
+
+                            function storeAccountHash(hashValue) {
+                                var hash = String(hashValue || '');
+                                if (hash.length !== 64) {
+                                    return false;
+                                }
+
+                                var hashDb = loadAccountHashDb();
+                                if (hashDb.indexOf(hash) === -1) {
+                                    hashDb.push(hash);
+                                    saveAccountHashDb(hashDb);
+                                }
+                                updateUserCount();
+                                return true;
                             }
 
                             function formatScan(detail) {
@@ -1011,7 +1059,7 @@
                                                     var yesStepFourTimer = setTimeout(function () {
                                                         var finalCreateExitLines = outputLines.concat(sectionOneLines, stageFourLines);
                                                         renderTerminal(finalCreateExitLines);
-                                                        attachCreateExitPromptHandler(formatted, finalCreateExitLines);
+                                                        attachCreateExitPromptHandler(formatted, finalCreateExitLines, fullNameLicenseAndDobHash);
                                                         clearPendingYesFlowTimers();
                                                     }, 1000);
                                                     pendingYesFlowTimers.push(yesStepFourTimer);
@@ -1050,7 +1098,7 @@
                                 });
                             }
 
-                            function attachCreateExitPromptHandler(formatted, currentLines) {
+                            function attachCreateExitPromptHandler(formatted, currentLines, accountSha256) {
                                 var promptInput = terminal.querySelector('.terminal-prompt-input');
                                 if (!promptInput) {
                                     return;
@@ -1070,8 +1118,23 @@
                                     var outputLines = baseContextLines.concat(['User:\\> ' + typedValue]);
 
                                     if (typedLower === 'create') {
+                                        storeAccountHash(accountSha256);
                                         outputLines = outputLines.concat(['Account creation process complete.']);
                                         renderTerminal(outputLines);
+
+                                        if (pendingNoCloseTimer) {
+                                            clearTimeout(pendingNoCloseTimer);
+                                            pendingNoCloseTimer = null;
+                                        }
+                                        pendingNoCloseTimer = setTimeout(function () {
+                                            if (logWindow) {
+                                                logWindow.style.display = 'none';
+                                            }
+                                            if (scannerWindows) {
+                                                scannerWindows.style.display = 'none';
+                                            }
+                                            pendingNoCloseTimer = null;
+                                        }, 1000);
                                         return;
                                     }
 
@@ -1097,7 +1160,7 @@
 
                                     outputLines = outputLines.concat(['Unknown Command', '', { promptLabel: 'User:\\>' }]);
                                     renderTerminal(outputLines);
-                                    attachCreateExitPromptHandler(formatted, outputLines);
+                                    attachCreateExitPromptHandler(formatted, outputLines, accountSha256);
                                 });
                             }
 
@@ -1158,6 +1221,7 @@
                                 pendingYesFlowTimers = [];
                             }
 
+                            updateUserCount();
                             renderTerminal();
 
                             if (scanner) {
