@@ -253,6 +253,7 @@
         <div class="Counters">
             <span id="Counters_User_Count">0 Users</span>
             <span id="Counters_Profit_Count">Networth $0.00</span>
+            <button id="Clear_Account_DB_Button" type="button">Clear DB</button>
             <style aria-label="Counters_Style">
                 .Counters {
                     position: absolute;
@@ -271,6 +272,35 @@
                     margin: 0 10px;
                     font-size: var(--Main_Font_Size);
                     color: var(--Main_UI_Text_Color);
+                }
+
+                #Clear_Account_DB_Button {
+                    margin-left: 10px;
+                    height: 30px;
+                    padding: 0 12px;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 6px;
+                    background-color: rgba(0, 0, 0, 0.35);
+                    color: var(--Main_UI_Text_Color);
+                    font-size: var(--Main_Font_Size);
+                    cursor: pointer;
+                    touch-action: manipulation;
+                }
+
+                @media (max-width: 480px) {
+                    .Counters {
+                        top: auto;
+                        bottom: 12px;
+                        height: auto;
+                        padding: 8px 10px;
+                        flex-wrap: wrap;
+                        row-gap: 8px;
+                    }
+
+                    #Clear_Account_DB_Button {
+                        width: 100%;
+                        height: 36px;
+                    }
                 }
             </style>
             <script aria-label="Counters_Script">
@@ -800,10 +830,12 @@
                             var scannerWindow = document.querySelector('.PDF417_Scanner_Window');
                             var logWindow = document.querySelector('.Log_Window');
                             var userCountEl = document.getElementById('Counters_User_Count');
+                            var clearDbButton = document.getElementById('Clear_Account_DB_Button');
                             var pendingEligibilityTimer = null;
                             var pendingUnderageCloseTimer = null;
                             var pendingUnderageExitTimer = null;
                             var pendingAccountPromptTimer = null;
+
                             var pendingNoCloseTimer = null;
                             var pendingYesFlowTimers = [];
                             var ACCOUNT_HASH_DB_KEY = 'accountSha256Db';
@@ -912,6 +944,17 @@
                             }
 
                             window.clearAccountDatabase = clearAccountDatabase;
+
+                            if (clearDbButton) {
+                                clearDbButton.addEventListener('click', function () {
+                                    var confirmed = window.confirm('Clear all stored account hashes?');
+                                    if (!confirmed) {
+                                        return;
+                                    }
+
+                                    clearAccountDatabase();
+                                });
+                            }
 
                             function formatScan(detail) {
                                 if (!detail || !detail.parsed) {
