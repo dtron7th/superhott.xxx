@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 
+    <script>
+        // Set this to your external API URL if you do not use Netlify redirects.
+        // Example: window.ACCOUNT_API_BASE = 'https://your-api-host.com';
+        window.ACCOUNT_API_BASE = window.ACCOUNT_API_BASE || '/api';
+    </script>
+
     <!-- --Book_Mark - (Color Variables Style)--------------------- -->
     <style aria-label="Color_Vars">
         :root {
@@ -807,38 +813,15 @@
                             var pendingNoCloseTimer = null;
                             var pendingYesFlowTimers = [];
                             var ACCOUNT_HASH_DB_KEY = 'accountSha256Db';
+                            var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || '/api').replace(/\/$/, '');
+                            var counterStream = null;
+                            var counterStreamRetryTimer = null;
 
                             function escapeHtml(value) {
                                 return String(value || '')
                                     .replace(/&/g, '&amp;')
                                     .replace(/</g, '&lt;')
                                     .replace(/>/g, '&gt;');
-                            }
-
-                            function renderLine(line) {
-                                if (line && typeof line === 'object' && line.promptLabel) {
-                                    return '<span>' + escapeHtml(line.promptLabel) + '</span> <input class="terminal-prompt-input" type="text" autocomplete="off" style="background:transparent;border:none;outline:none;color:inherit;font:inherit;width:140px;" />';
-                                }
-                                if (line && typeof line === 'object' && line.text !== undefined) {
-                                    var safeText = escapeHtml(line.text);
-                                    if (line.color) {
-                                        return '<span style="color:' + escapeHtml(line.color) + '">' + safeText + '</span>';
-                                    }
-                                    return safeText;
-                                }
-                                return escapeHtml(line);
-                            }
-
-                            function renderTerminal(lines) {
-                                var content = ['My Lesbian Story', ''].concat(lines || []);
-                                terminal.innerHTML = content.map(renderLine).join('<br>');
-                                terminal.scrollTop = terminal.scrollHeight;
-                            }
-
-                            function stripPromptLines(lines) {
-                                return (lines || []).filter(function (line) {
-                                    return !(line && typeof line === 'object' && line.promptLabel);
-                                });
                             }
 
                             async function sha256Hex(value) {
@@ -878,27 +861,118 @@
                                 }
                             }
 
-                            function updateUserCount() {
+                            async function apiRequest(path, options) {
+                                var response = await fetch(ACCOUNT_API_BASE + path, options || {});
+                                if (!response.ok) {
+                                    throw new Error('API request failed');
+                                }
+                                return response.json();
+                            }
+
+                            function setUserCount(count) {
                                 if (!userCountEl) {
                                     return;
                                 }
-                                var count = loadAccountHashDb().length;
-                                userCountEl.textContent = String(count) + ' Users';
+                                userCountEl.textContent = String(Math.max(0, Number(count) || 0)) + ' Users';
                             }
 
-                            function storeAccountHash(hashValue) {
+                            async function fetchCloudUserCount() {
+                                var payload = await apiRequest('/api/count');
+                                return Number(payload && payload.count) || 0;
+                            }
+
+                            async function cloudHasAccountHash(hash) {
+                                var safeHash = String(hash || '').toLowerCase();
+                                if (safeHash.length !== 64) {
+                                    return false;
+                                }
+                                var payload = await apiRequest('/api/account-hashes/' + encodeURIComponent(safeHash));
+                                return !!(payload && payload.exists);
+                            }
+
+                            async function cloudStoreAccountHash(hash) {
+                                var safeHash = String(hash || '').toLowerCase();
+                                if (safeHash.length !== 64) {
+                                    return false;
+                                }
+                                var payload = await apiRequest('/api/account-hashes', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ hash: safeHash })
+                                });
+                                if (payload && typeof payload.count !== 'undefined') {
+                                    setUserCount(payload.count);
+                                }
+                                return true;
+                            }
+
+                            function startCounterStream() {
+                                if (typeof EventSource === 'undefined') {
+                                    return;
+                                }
+
+                                if (counterStream) {
+                                    counterStream.close();
+                                    counterStream = null;
+                                }
+                                if (counterStreamRetryTimer) {
+                                    clearTimeout(counterStreamRetryTimer);
+                                    counterStreamRetryTimer = null;
+                                }
+
+                                try {
+                                    counterStream = new EventSource(ACCOUNT_API_BASE + '/api/stream');
+                                } catch (error) {
+                                    return;
+                                }
+
+                                counterStream.onmessage = function (event) {
+                                    try {
+                                        var payload = JSON.parse(event.data || '{}');
+                                        if (typeof payload.count !== 'undefined') {
+                                            setUserCount(payload.count);
+                                        }
+                                    } catch (error) {
+                                        // ignore stream payload errors
+                                    }
+                                };
+
+                                counterStream.onerror = function () {
+                                    if (counterStream) {
+                                        counterStream.close();
+                                        counterStream = null;
+                                    }
+                                    if (counterStreamRetryTimer) {
+                                        clearTimeout(counterStreamRetryTimer);
+                                    }
+                                    counterStreamRetryTimer = setTimeout(startCounterStream, 3000);
+                                };
+                            }
+
+                            async function updateUserCount() {
+                                if (!userCountEl) {
+                                    return;
+                                }
+                                try {
+                                    var cloudCount = await fetchCloudUserCount();
+                                    setUserCount(cloudCount);
+                                    return;
+                                } catch (error) {
+                                    // cloud unavailable: keep last rendered count
+                                }
+                            }
+
+                            async function storeAccountHash(hashValue) {
                                 var hash = String(hashValue || '');
                                 if (hash.length !== 64) {
                                     return false;
                                 }
 
-                                var hashDb = loadAccountHashDb();
-                                if (hashDb.indexOf(hash) === -1) {
-                                    hashDb.push(hash);
-                                    saveAccountHashDb(hashDb);
+                                try {
+                                    return await cloudStoreAccountHash(hash);
+                                } catch (error) {
+                                    return false;
                                 }
-                                updateUserCount();
-                                return true;
                             }
 
                             async function hasMatchingStoredAccount(parsed) {
@@ -914,8 +988,14 @@
                                     return false;
                                 }
 
-                                var db = loadAccountHashDb();
-                                return db.indexOf(accountHash) !== -1;
+                                try {
+                                    if (await cloudHasAccountHash(accountHash)) {
+                                        return true;
+                                    }
+                                } catch (error) {
+                                    return false;
+                                }
+                                return false;
                             }
 
                             function formatScan(detail) {
@@ -1008,7 +1088,33 @@
                                 };
                             }
 
-                            function attachAccountPromptHandler(formatted, currentLines) {
+                            function renderLine(line) {
+                                if (line && typeof line === 'object' && line.promptLabel) {
+                                    return '<span>' + escapeHtml(line.promptLabel) + '</span> <input class="terminal-prompt-input" type="text" autocomplete="off" style="background:transparent;border:none;outline:none;color:inherit;font:inherit;width:140px;" />';
+                                }
+                                if (line && typeof line === 'object' && line.text !== undefined) {
+                                    var safeText = escapeHtml(line.text);
+                                    if (line.color) {
+                                        return '<span style="color:' + escapeHtml(line.color) + '">' + safeText + '</span>';
+                                    }
+                                    return safeText;
+                                }
+                                return escapeHtml(line);
+                            }
+
+                            function renderTerminal(lines) {
+                                var content = ['My Lesbian Story', ''].concat(lines || []);
+                                terminal.innerHTML = content.map(renderLine).join('<br>');
+                                terminal.scrollTop = terminal.scrollHeight;
+                            }
+
+                            function stripPromptLines(lines) {
+                                return (lines || []).filter(function (line) {
+                                    return !(line && typeof line === 'object' && line.promptLabel);
+                                });
+                            }
+
+                            async function attachAccountPromptHandler(formatted, currentLines) {
                                 var promptInput = terminal.querySelector('.terminal-prompt-input');
                                 if (!promptInput) {
                                     return;
@@ -1123,7 +1229,7 @@
 
                                 promptInput.focus();
 
-                                promptInput.addEventListener('keydown', function (event) {
+                                promptInput.addEventListener('keydown', async function (event) {
                                     if (event.key !== 'Enter') {
                                         return;
                                     }
@@ -1135,7 +1241,7 @@
                                     var outputLines = baseContextLines.concat(['User:\\> ' + typedValue]);
 
                                     if (typedLower === 'create') {
-                                        storeAccountHash(accountSha256);
+                                        await storeAccountHash(accountSha256);
                                         outputLines = outputLines.concat(['Account creation process complete.']);
                                         renderTerminal(outputLines);
 
@@ -1239,7 +1345,26 @@
                             }
 
                             updateUserCount();
+                            startCounterStream();
                             renderTerminal();
+
+                            document.addEventListener('visibilitychange', function () {
+                                if (!document.hidden) {
+                                    updateUserCount();
+                                    startCounterStream();
+                                }
+                            });
+
+                            window.addEventListener('beforeunload', function () {
+                                if (counterStream) {
+                                    counterStream.close();
+                                    counterStream = null;
+                                }
+                                if (counterStreamRetryTimer) {
+                                    clearTimeout(counterStreamRetryTimer);
+                                    counterStreamRetryTimer = null;
+                                }
+                            });
 
                             if (scanner) {
                                 scanner.addEventListener('pdf417-scan', async function (event) {
@@ -1424,7 +1549,7 @@
             <p id="Account_Created_Window_Title">Account Created!</p>
             <span id="Account_Created_Window_Message">An account has been found with the name 'name'.</span>
             <div class="Account_Created_Window_Bottom_Buttons">
-                <button id="Account_Created_Window_Close">[ Login ]</button>
+                <button id="Account_Created_Window_Login">[ Login ]</button>
                 <button id="Account_Created_Window_Close">[ Close ]</button>
             </div>
             <style aria-label="Account_Created_Window_Style">
@@ -1487,8 +1612,9 @@
                     var scanner = document.querySelector('.PDF417_Scanner');
                     var accountCreatedWindow = document.querySelector('.Account_Created_Window');
                     var accountCreatedMessage = document.getElementById('Account_Created_Window_Message');
+                    var accountCreatedLoginButton = document.getElementById('Account_Created_Window_Login');
                     var accountCreatedCloseButton = document.getElementById('Account_Created_Window_Close');
-                    var ACCOUNT_HASH_DB_KEY = 'accountSha256Db';
+                    var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || 'http://localhost:3000').replace(/\/$/, '');
 
                     function escapeHtml(value) {
                         return String(value || '')
@@ -1511,19 +1637,18 @@
                         }).join('');
                     }
 
-                    function loadAccountHashDb() {
-                        try {
-                            var raw = window.localStorage.getItem(ACCOUNT_HASH_DB_KEY);
-                            var parsed = JSON.parse(raw || '[]');
-                            if (!Array.isArray(parsed)) {
-                                return [];
-                            }
-                            return parsed.filter(function (item) {
-                                return typeof item === 'string' && item.length === 64;
-                            });
-                        } catch (error) {
-                            return [];
+                    async function cloudHasAccountHash(hash) {
+                        var safeHash = String(hash || '').toLowerCase();
+                        if (safeHash.length !== 64) {
+                            return false;
                         }
+
+                        var response = await fetch(ACCOUNT_API_BASE + '/api/account-hashes/' + encodeURIComponent(safeHash));
+                        if (!response.ok) {
+                            throw new Error('Cloud lookup failed');
+                        }
+                        var payload = await response.json();
+                        return !!(payload && payload.exists);
                     }
 
                     function hideAccountCreatedWindow() {
@@ -1546,6 +1671,12 @@
                     }
 
                     hideAccountCreatedWindow();
+
+                    if (accountCreatedLoginButton) {
+                        accountCreatedLoginButton.addEventListener('click', function () {
+                            hideAccountCreatedWindow();
+                        });
+                    }
 
                     if (accountCreatedCloseButton) {
                         accountCreatedCloseButton.addEventListener('click', function () {
@@ -1574,9 +1705,13 @@
                             return;
                         }
 
-                        var db = loadAccountHashDb();
-                        if (db.indexOf(accountHash) !== -1) {
-                            showAccountCreatedWindow(accountHash);
+                        try {
+                            if (await cloudHasAccountHash(accountHash)) {
+                                showAccountCreatedWindow(accountHash);
+                                return;
+                            }
+                        } catch (error) {
+                            // cloud unavailable: do not show duplicate-account window
                         }
                     });
                 })();
