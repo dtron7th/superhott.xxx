@@ -1391,6 +1391,157 @@
             
         </div>
 
+        <div class="Account_Created_Window">
+            <p id="Account_Created_Window_Title">Account Created!</p>
+            <span id="Account_Created_Window_Message">An account has been found with the name 'name'.</span>
+            <button id="Account_Created_Window_Close">[ Close ]</button>
+            <style aria-label="Account_Created_Window_Style">
+                .Account_Created_Window {
+                    position: absolute;
+                    z-index: 6;
+                    width: 300px;
+                    height: 300px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    overflow: hidden;
+                    background-color: rgba(0, 0, 0, 0.226);
+                    backdrop-filter: var(--Main_UI_Backdrop);
+                    display: none;
+                }
+
+                .Account_Created_Window #Account_Created_Window_Title {
+                    position: absolute;
+                    top: 20px;
+                    color: white;
+                    font-size: var(--Main_Font_Size);
+                    text-align: center;
+                    
+                }
+                
+                .Account_Created_Window #Account_Created_Window_Message {
+                    position: absolute;
+                    top: 50px;
+                    width: 200px;
+                    color: white;
+                    font-size: var(--Main_Font_Size);
+                    text-align: center;
+                    
+                }
+
+                .Account_Created_Window #Account_Created_Window_Close {
+                    position: absolute;
+                    bottom: 16px;
+                    border: none;
+                    outline: none;
+                    background: transparent;
+                    color: var(--Main_UI_Text_Color);
+                    font-size: var(--Main_Font_Size);
+                    cursor: pointer;
+                }
+            
+            </style>
+            <script aria-label="Account_Created_Window_Script">
+                (function () {
+                    var scanner = document.querySelector('.PDF417_Scanner');
+                    var accountCreatedWindow = document.querySelector('.Account_Created_Window');
+                    var accountCreatedMessage = document.getElementById('Account_Created_Window_Message');
+                    var accountCreatedCloseButton = document.getElementById('Account_Created_Window_Close');
+                    var ACCOUNT_HASH_DB_KEY = 'accountSha256Db';
+
+                    function escapeHtml(value) {
+                        return String(value || '')
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;');
+                    }
+
+                    async function sha256Hex(value) {
+                        if (!window.crypto || !window.crypto.subtle || typeof TextEncoder === 'undefined') {
+                            return null;
+                        }
+
+                        var input = String(value || '');
+                        var encoded = new TextEncoder().encode(input);
+                        var digestBuffer = await window.crypto.subtle.digest('SHA-256', encoded);
+                        var digestArray = Array.from(new Uint8Array(digestBuffer));
+                        return digestArray.map(function (byte) {
+                            return byte.toString(16).padStart(2, '0');
+                        }).join('');
+                    }
+
+                    function loadAccountHashDb() {
+                        try {
+                            var raw = window.localStorage.getItem(ACCOUNT_HASH_DB_KEY);
+                            var parsed = JSON.parse(raw || '[]');
+                            if (!Array.isArray(parsed)) {
+                                return [];
+                            }
+                            return parsed.filter(function (item) {
+                                return typeof item === 'string' && item.length === 64;
+                            });
+                        } catch (error) {
+                            return [];
+                        }
+                    }
+
+                    function hideAccountCreatedWindow() {
+                        if (accountCreatedWindow) {
+                            accountCreatedWindow.style.display = 'none';
+                        }
+                    }
+
+                    function showAccountCreatedWindow(matchedHash) {
+                        if (!accountCreatedWindow || !accountCreatedMessage) {
+                            return;
+                        }
+
+                        accountCreatedMessage.innerHTML =
+                            'An account already exists for this ID data.' +
+                            '<br><br>Account SHA-256 Output:<br>' +
+                            '<span style="display:inline-block;max-width:220px;overflow-wrap:anywhere;word-break:break-word;">' + escapeHtml(matchedHash) + '</span>';
+
+                        accountCreatedWindow.style.display = 'flex';
+                    }
+
+                    hideAccountCreatedWindow();
+
+                    if (accountCreatedCloseButton) {
+                        accountCreatedCloseButton.addEventListener('click', function () {
+                            hideAccountCreatedWindow();
+                        });
+                    }
+
+                    if (!scanner) {
+                        return;
+                    }
+
+                    scanner.addEventListener('pdf417-scan', async function (event) {
+                        hideAccountCreatedWindow();
+
+                        var detail = event && event.detail;
+                        var parsed = detail && detail.parsed;
+                        if (!parsed) {
+                            return;
+                        }
+
+                        var fullName = parsed.fullName || '-';
+                        var licenseNumber = parsed.licenseNumber || '-';
+                        var dob = parsed.dateOfBirth || '-';
+                        var accountHash = await sha256Hex(fullName + licenseNumber + dob);
+                        if (!accountHash) {
+                            return;
+                        }
+
+                        var db = loadAccountHashDb();
+                        if (db.indexOf(accountHash) !== -1) {
+                            showAccountCreatedWindow(accountHash);
+                        }
+                    });
+                })();
+            </script>
+        </div>
+
         <!-- --Book_Mark - (Id_Scanner Styles)--------------------- -->
         <style aria-label="Id_Scanner_Style">
             .Id_Scanner {
