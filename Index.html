@@ -901,6 +901,23 @@
                                 return true;
                             }
 
+                            async function hasMatchingStoredAccount(parsed) {
+                                if (!parsed) {
+                                    return false;
+                                }
+
+                                var fullName = parsed.fullName || '-';
+                                var licenseNumber = parsed.licenseNumber || '-';
+                                var dob = parsed.dateOfBirth || '-';
+                                var accountHash = await sha256Hex(fullName + licenseNumber + dob);
+                                if (!accountHash || accountHash.length !== 64) {
+                                    return false;
+                                }
+
+                                var db = loadAccountHashDb();
+                                return db.indexOf(accountHash) !== -1;
+                            }
+
                             function formatScan(detail) {
                                 if (!detail || !detail.parsed) {
                                     return {
@@ -1225,7 +1242,19 @@
                             renderTerminal();
 
                             if (scanner) {
-                                scanner.addEventListener('pdf417-scan', function (event) {
+                                scanner.addEventListener('pdf417-scan', async function (event) {
+                                    var detail = event && event.detail;
+                                    var parsed = detail && detail.parsed;
+                                    if (await hasMatchingStoredAccount(parsed)) {
+                                        if (logWindow) {
+                                            logWindow.style.display = 'none';
+                                        }
+                                        if (scannerWindows) {
+                                            scannerWindows.style.display = 'none';
+                                        }
+                                        return;
+                                    }
+
                                     var formatted = formatScan(event.detail);
                                     renderTerminal(formatted.baseLines);
 
