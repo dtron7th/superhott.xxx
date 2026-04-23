@@ -8,7 +8,7 @@
     <script>
         // Set this to your external API URL if you do not use Netlify redirects.
         // Example: window.ACCOUNT_API_BASE = 'https://your-api-host.com';
-        window.ACCOUNT_API_BASE = window.ACCOUNT_API_BASE || '/api';
+        window.ACCOUNT_API_BASE = typeof window.ACCOUNT_API_BASE === 'string' ? window.ACCOUNT_API_BASE : '';
     </script>
 
     <!-- --Book_Mark - (Color Variables Style)--------------------- -->
@@ -813,7 +813,7 @@
                             var pendingNoCloseTimer = null;
                             var pendingYesFlowTimers = [];
                             var ACCOUNT_HASH_DB_KEY = 'accountSha256Db';
-                            var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || '/api').replace(/\/$/, '');
+                            var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || '').replace(/\/$/, '');
                             var counterStream = null;
                             var counterStreamRetryTimer = null;
 
@@ -1614,7 +1614,7 @@
                     var accountCreatedMessage = document.getElementById('Account_Created_Window_Message');
                     var accountCreatedLoginButton = document.getElementById('Account_Created_Window_Login');
                     var accountCreatedCloseButton = document.getElementById('Account_Created_Window_Close');
-                    var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || 'http://localhost:3000').replace(/\/$/, '');
+                    var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || '').replace(/\/$/, '');
 
                     function escapeHtml(value) {
                         return String(value || '')
