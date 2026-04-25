@@ -209,7 +209,10 @@
             <script aria-label="Ascii_Logo_Script">
                 (function () {
                     var textEl = document.getElementById('Ascii_Logo_Text');
-                    if (!textEl) { return; }
+                    if (!textEl) {
+                        return;
+                    }
+
                     var logoEl = textEl.closest('.Ascii_Logo');
                     if (logoEl) {
                         logoEl.style.position = 'fixed';
@@ -219,6 +222,7 @@
                         logoEl.style.height = '100vh';
                         logoEl.style.overflow = 'hidden';
                     }
+
                     textEl.style.position = 'absolute';
                     textEl.style.inset = '0';
                     textEl.style.width = '100%';
@@ -231,94 +235,202 @@
                     textEl.style.letterSpacing = '0';
                     textEl.style.pointerEvents = 'none';
                     textEl.style.userSelect = 'none';
+                    textEl.style.zIndex = '0';
 
-                    var columns = 0, rows = 0, charWidth = 4.2, charHeight = 7, lastFrameTs = 0;
+                    var img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.src = 'https://static.vecteezy.com/system/resources/thumbnails/066/726/869/small_2x/single-pink-rose-with-leaves-isolated-on-transparent-background-png.png';
+
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+                    var charWidth = 4.2;
+                    var charHeight = 7;
+                    var columns = 0;
+                    var rows = 0;
+                    var animationFrame = 0;
+                    var scale = 1;
+                    var pulseDirection = 1;
+                    var bloomIntensity = 0;
+                    var bloomDirection = 1;
+                    var glitchIntensity = 0;
+                    var glitchTimer = 0;
+                    var pixelateAmount = 0;
+                    var pixelateDirection = 1;
+                    var fadeOpacity = 1;
+                    var fadeDirection = 1;
 
                     function recalcGrid() {
-                        columns = Math.max(48, Math.ceil(window.innerWidth / charWidth) + 4);
-                        rows = Math.max(24, Math.ceil(window.innerHeight / charHeight) + 2);
+                        columns = Math.max(48, Math.ceil(window.innerWidth / charWidth));
+                        rows = Math.max(24, Math.ceil(window.innerHeight / charHeight));
                     }
 
-                    function rose(u, v, cx, cy, sz, petalN, foldN, spiralN, t, speed, rot, pulse) {
-                        var dx = u - cx, dy = v - cy;
-                        var cr = Math.cos(rot), sr = Math.sin(rot);
-                        var rx = dx * cr - dy * sr, ry = dx * sr + dy * cr;
-                        ry *= 1.18;
-                        var szNow = sz * (1 + 0.09 * pulse);
-                        var r = Math.sqrt(rx * rx + ry * ry);
-                        var a = Math.atan2(ry, rx);
-                        var mask = Math.exp(-Math.pow(r / szNow, 2));
-                        var p1 = 0.5 + 0.5 * Math.sin(a * petalN + r * 32 - t * speed * 0.4);
-                        var p2 = 0.5 + 0.5 * Math.sin((a + 0.9) * foldN - r * 22 + t * speed * 0.25);
-                        var p3 = 0.5 + 0.5 * Math.sin(a * spiralN + r * 18 - t * speed * 0.55);
-                        var core = Math.exp(-r / (szNow * 0.3)) * (0.5 + 0.5 * Math.sin(a * 5 + r * 14 - t * speed * 0.7));
-                        var edge = Math.max(0, Math.sin(a * (petalN + 2) - r * 40) - 0.5) * mask;
-                        return mask * (0.3 + 0.42 * p1 + 0.28 * p2 + 0.18 * p3) + core * 0.55 + edge * 0.35;
-                    }
+                    function renderAscii() {
+                        if (!img.complete) return;
 
-                    function renderFrame(timeMs) {
-                        var cols = columns, rowsOut = rows;
-                        var t = timeMs * 0.0004;
-                        var chars = " .'`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+                        var cols = columns;
+                        var rowsOut = rows;
+                        
+                        canvas.width = cols;
+                        canvas.height = rowsOut;
+                        
+                        ctx.clearRect(0, 0, cols, rowsOut);
+                        ctx.save();
+                        
+                        var centerX = cols / 2;
+                        var centerY = rowsOut / 2;
+                        
+                        ctx.translate(centerX, centerY);
+                        ctx.scale(scale, scale);
+                        ctx.translate(-centerX, -centerY);
+                        
+                        var aspectRatio = img.width / img.height;
+                        var targetAspect = cols / rowsOut;
+                        var drawWidth, drawHeight, drawOffsetX, drawOffsetY;
+                        
+                        if (aspectRatio > targetAspect) {
+                            drawHeight = rowsOut;
+                            drawWidth = drawHeight * aspectRatio;
+                            drawOffsetX = (cols - drawWidth) / 2;
+                            drawOffsetY = 0;
+                        } else {
+                            drawWidth = cols;
+                            drawHeight = drawWidth / aspectRatio;
+                            drawOffsetX = 0;
+                            drawOffsetY = (rowsOut - drawHeight) / 2;
+                        }
+                        
+                        ctx.drawImage(img, drawOffsetX, drawOffsetY, drawWidth, drawHeight);
+                        ctx.restore();
+                        
+                        var imageData = ctx.getImageData(0, 0, cols, rowsOut);
+                        var pixels = imageData.data;
+                        
+                        var chars = " .'`^\",:;Il!i><~+_?][}{1)(tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
                         var n = chars.length;
                         var lines = [];
-                        function clamp01(val) { return val < 0 ? 0 : (val > 1 ? 1 : val); }
-
-                        var roseData = [
-                            { cx: -0.48, cy:  0.22, sz: 0.32, pN: 7,  fN: 5, sN: 4, sp: 0.35, rSpd:  0.04, phase: 0.0 },
-                            { cx:  0.38, cy: -0.18, sz: 0.28, pN: 9,  fN: 4, sN: 5, sp: 0.30, rSpd: -0.03, phase: 0.9 },
-                            { cx: -0.12, cy: -0.52, sz: 0.24, pN: 6,  fN: 6, sN: 3, sp: 0.40, rSpd:  0.05, phase: 1.8 },
-                            { cx:  0.55, cy:  0.48, sz: 0.22, pN: 8,  fN: 3, sN: 6, sp: 0.32, rSpd: -0.035, phase: 2.7 },
-                            { cx: -0.72, cy: -0.22, sz: 0.19, pN: 5,  fN: 7, sN: 4, sp: 0.38, rSpd:  0.06, phase: 3.6 },
-                            { cx:  0.08, cy:  0.62, sz: 0.21, pN: 10, fN: 4, sN: 5, sp: 0.25, rSpd: -0.025, phase: 4.5 },
-                            { cx:  0.72, cy:  0.08, sz: 0.17, pN: 6,  fN: 5, sN: 7, sp: 0.45, rSpd:  0.07, phase: 5.4 }
-                        ];
-                        var fadePeriod = 3.8;
-
+                        
                         for (var y = 0; y < rowsOut; y++) {
                             var row = '';
                             for (var x = 0; x < cols; x++) {
-                                var u = (x / cols) * 2 - 1;
-                                var v = (y / rowsOut) * 2 - 1;
-                                var intensity = 0;
-                                var wu = u + 0.01 * Math.sin(v * 4 + t * 0.5) + 0.006 * Math.sin((u + v) * 6 - t * 0.7);
-                                var wv = v + 0.012 * Math.cos(u * 3 - t * 0.6) + 0.005 * Math.cos((u - v) * 5 + t * 0.4);
-                                var nebula1 = 0.5 + 0.5 * Math.sin(wu * 3.2 + wv * 2.1 + t * 0.3);
-                                var nebula2 = 0.5 + 0.5 * Math.cos(wu * 1.8 - wv * 2.8 - t * 0.25);
-                                var nebula3 = 0.5 + 0.5 * Math.sin((wu + wv) * 4.5 + t * 0.18);
-                                intensity += (nebula1 * 0.04 + nebula2 * 0.03 + nebula3 * 0.025);
-                                for (var ri = 0; ri < roseData.length; ri++) {
-                                    var rd = roseData[ri];
-                                    var fadeSin = Math.sin(t / fadePeriod - rd.phase);
-                                    var fade = fadeSin > 0 ? fadeSin * fadeSin : 0;
-                                    if (fade > 0.01) {
-                                        var rcx = rd.cx + 0.008 * Math.sin(t * 0.3 + rd.phase);
-                                        var rcy = rd.cy + 0.01 * Math.cos(t * 0.35 + rd.phase * 1.3);
-                                        var rVal = rose(wu, wv, rcx, rcy, rd.sz, rd.pN, rd.fN, rd.sN, t, rd.sp, t * rd.rSpd, Math.sin(t * 0.3 + rd.phase));
-                                        intensity += rVal * fade;
-                                    }
+                                var i = (y * cols + x) * 4;
+                                var r = pixels[i];
+                                var g = pixels[i + 1];
+                                var b = pixels[i + 2];
+                                var a = pixels[i + 3];
+                                
+                                var brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+                                brightness *= (a / 255);
+                                
+                                var wave = Math.sin((x * 0.1) + (y * 0.1) + (animationFrame * 0.05)) * 0.2 + 1;
+                                brightness *= wave;
+                                
+                                var distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                                var maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
+                                var normalizedDist = distFromCenter / maxDist;
+                                
+                                var bloomWave = Math.sin(animationFrame * 0.03 - normalizedDist * 6) * 0.5 + 0.5;
+                                var bloom = bloomWave * bloomIntensity * 0.15;
+                                brightness += bloom * 0.2;
+                                
+                                var radialPulse = Math.sin(normalizedDist * 8 - animationFrame * 0.08) * 0.05 * bloomIntensity;
+                                brightness += radialPulse;
+                                
+                                if (glitchIntensity > 0.5 && Math.random() < glitchIntensity * 0.03) {
+                                    brightness = Math.random() * 0.3;
                                 }
-                                var vignette = Math.sqrt(u * u * 0.65 + v * v * 0.45);
-                                intensity *= clamp01(1.15 - vignette * 0.5);
-                                intensity = clamp01(intensity);
-                                row += chars.charAt(Math.floor(intensity * (n - 1)));
+                                
+                                var pixelX = Math.floor(x / (1 + pixelateAmount * 5));
+                                var pixelY = Math.floor(y / (1 + pixelateAmount * 5));
+                                if ((pixelX + pixelY) % 2 === 0 && pixelateAmount > 0.3) {
+                                    brightness *= 0.7;
+                                }
+                                
+                                brightness = Math.max(0, Math.min(1, brightness));
+                                
+                                var charIndex = Math.floor(brightness * (n - 1));
+                                
+                                if (glitchIntensity > 0.7 && Math.random() < 0.02) {
+                                    charIndex = Math.floor(Math.random() * n);
+                                }
+                                
+                                row += chars.charAt(charIndex);
                             }
+                            
+                            if (glitchIntensity > 0.6 && Math.random() < glitchIntensity * 0.02) {
+                                var glitchOffset = Math.floor(Math.random() * 10) - 5;
+                                if (glitchOffset > 0) {
+                                    row = ' '.repeat(glitchOffset) + row.slice(0, -glitchOffset);
+                                } else {
+                                    row = row.slice(-glitchOffset) + ' '.repeat(-glitchOffset);
+                                }
+                            }
+                            
                             lines.push(row);
                         }
+                        
                         textEl.textContent = lines.join('\n');
+                        textEl.style.opacity = fadeOpacity;
                     }
 
-                    function animate(timeMs) {
-                        if (timeMs - lastFrameTs >= 80) {
-                            renderFrame(timeMs);
-                            lastFrameTs = timeMs;
+                    function animate() {
+                        animationFrame++;
+                        
+                        fadeOpacity += 0.005 * fadeDirection;
+                        if (fadeOpacity > 1) {
+                            fadeOpacity = 1;
+                            fadeDirection = -1;
+                        } else if (fadeOpacity < 0.6) {
+                            fadeOpacity = 0.6;
+                            fadeDirection = 1;
                         }
-                        window.requestAnimationFrame(animate);
+                        
+                        scale += 0.002 * pulseDirection;
+                        if (scale > 1.1) {
+                            scale = 1.1;
+                            pulseDirection = -1;
+                        } else if (scale < 0.9) {
+                            scale = 0.9;
+                            pulseDirection = 1;
+                        }
+                        
+                        bloomIntensity += 0.015 * bloomDirection;
+                        if (bloomIntensity > 1) {
+                            bloomIntensity = 1;
+                            bloomDirection = -1;
+                        } else if (bloomIntensity < 0) {
+                            bloomIntensity = 0;
+                            bloomDirection = 1;
+                        }
+                        
+                        glitchTimer++;
+                        if (glitchTimer > 200) {
+                            glitchIntensity = Math.random();
+                            glitchTimer = 0;
+                        } else {
+                            glitchIntensity *= 0.95;
+                        }
+                        
+                        pixelateAmount += 0.01 * pixelateDirection;
+                        if (pixelateAmount > 1) {
+                            pixelateAmount = 1;
+                            pixelateDirection = -1;
+                        } else if (pixelateAmount < 0) {
+                            pixelateAmount = 0;
+                            pixelateDirection = 1;
+                        }
+                        
+                        renderAscii();
+                        requestAnimationFrame(animate);
                     }
 
-                    recalcGrid();
-                    window.addEventListener('resize', recalcGrid);
-                    window.requestAnimationFrame(animate);
+                    img.onload = function() {
+                        recalcGrid();
+                        animate();
+                    };
+
+                    window.addEventListener('resize', function() {
+                        recalcGrid();
+                    });
                 })();
             </script>
         </div>
