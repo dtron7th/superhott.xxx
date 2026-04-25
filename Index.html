@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -209,10 +209,7 @@
             <script aria-label="Ascii_Logo_Script">
                 (function () {
                     var textEl = document.getElementById('Ascii_Logo_Text');
-                    if (!textEl) {
-                        return;
-                    }
-
+                    if (!textEl) { return; }
                     var logoEl = textEl.closest('.Ascii_Logo');
                     if (logoEl) {
                         logoEl.style.position = 'fixed';
@@ -222,7 +219,6 @@
                         logoEl.style.height = '100vh';
                         logoEl.style.overflow = 'hidden';
                     }
-
                     textEl.style.position = 'absolute';
                     textEl.style.inset = '0';
                     textEl.style.width = '100%';
@@ -235,271 +231,94 @@
                     textEl.style.letterSpacing = '0';
                     textEl.style.pointerEvents = 'none';
                     textEl.style.userSelect = 'none';
-                    textEl.style.zIndex = '0';
 
-                    var img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.src = 'https://static.vecteezy.com/system/resources/thumbnails/066/726/869/small_2x/single-pink-rose-with-leaves-isolated-on-transparent-background-png.png';
-
-                    var canvas = document.createElement('canvas');
-                    var ctx = canvas.getContext('2d');
-                    var charWidth = 4.2;
-                    var charHeight = 7;
-                    var columns = 0;
-                    var rows = 0;
-                    var animationFrame = 0;
-                    var scale = 1;
-                    var pulseDirection = 1;
-                    var bloomIntensity = 0;
-                    var bloomDirection = 1;
-                    var glitchIntensity = 0;
-                    var glitchTimer = 0;
-                    var pixelateAmount = 0;
-                    var pixelateDirection = 1;
-                    var offsetX = 0;
-                    var offsetY = 0;
-                    var isDragging = false;
-                    var dragStartX = 0;
-                    var dragStartY = 0;
-                    var velocity = { x: 0, y: 0 };
-                    var fadeOpacity = 1;
-                    var fadeDirection = 1;
+                    var columns = 0, rows = 0, charWidth = 4.2, charHeight = 7, lastFrameTs = 0;
 
                     function recalcGrid() {
-                        columns = Math.max(48, Math.ceil(window.innerWidth / charWidth));
-                        rows = Math.max(24, Math.ceil(window.innerHeight / charHeight));
+                        columns = Math.max(48, Math.ceil(window.innerWidth / charWidth) + 4);
+                        rows = Math.max(24, Math.ceil(window.innerHeight / charHeight) + 2);
                     }
 
-                    function renderAscii() {
-                        if (!img.complete) return;
+                    function rose(u, v, cx, cy, sz, petalN, foldN, spiralN, t, speed, rot, pulse) {
+                        var dx = u - cx, dy = v - cy;
+                        var cr = Math.cos(rot), sr = Math.sin(rot);
+                        var rx = dx * cr - dy * sr, ry = dx * sr + dy * cr;
+                        ry *= 1.18;
+                        var szNow = sz * (1 + 0.09 * pulse);
+                        var r = Math.sqrt(rx * rx + ry * ry);
+                        var a = Math.atan2(ry, rx);
+                        var mask = Math.exp(-Math.pow(r / szNow, 2));
+                        var p1 = 0.5 + 0.5 * Math.sin(a * petalN + r * 32 - t * speed * 0.4);
+                        var p2 = 0.5 + 0.5 * Math.sin((a + 0.9) * foldN - r * 22 + t * speed * 0.25);
+                        var p3 = 0.5 + 0.5 * Math.sin(a * spiralN + r * 18 - t * speed * 0.55);
+                        var core = Math.exp(-r / (szNow * 0.3)) * (0.5 + 0.5 * Math.sin(a * 5 + r * 14 - t * speed * 0.7));
+                        var edge = Math.max(0, Math.sin(a * (petalN + 2) - r * 40) - 0.5) * mask;
+                        return mask * (0.3 + 0.42 * p1 + 0.28 * p2 + 0.18 * p3) + core * 0.55 + edge * 0.35;
+                    }
 
-                        var cols = columns;
-                        var rowsOut = rows;
-                        
-                        canvas.width = cols;
-                        canvas.height = rowsOut;
-                        
-                        ctx.clearRect(0, 0, cols, rowsOut);
-                        ctx.save();
-                        
-                        var centerX = cols / 2;
-                        var centerY = rowsOut / 2;
-                        
-                        ctx.translate(centerX + offsetX, centerY + offsetY);
-                        ctx.scale(scale, scale);
-                        ctx.translate(-centerX, -centerY);
-                        
-                        var aspectRatio = img.width / img.height;
-                        var targetAspect = cols / rowsOut;
-                        var drawWidth, drawHeight, drawOffsetX, drawOffsetY;
-                        
-                        if (aspectRatio > targetAspect) {
-                            drawHeight = rowsOut;
-                            drawWidth = drawHeight * aspectRatio;
-                            drawOffsetX = (cols - drawWidth) / 2;
-                            drawOffsetY = 0;
-                        } else {
-                            drawWidth = cols;
-                            drawHeight = drawWidth / aspectRatio;
-                            drawOffsetX = 0;
-                            drawOffsetY = (rowsOut - drawHeight) / 2;
-                        }
-                        
-                        ctx.drawImage(img, drawOffsetX, drawOffsetY, drawWidth, drawHeight);
-                        ctx.restore();
-                        
-                        var imageData = ctx.getImageData(0, 0, cols, rowsOut);
-                        var pixels = imageData.data;
-                        
-                        var chars = " .'`^\",:;Il!i><~+_?][}{1)(tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+                    function renderFrame(timeMs) {
+                        var cols = columns, rowsOut = rows;
+                        var t = timeMs * 0.0004;
+                        var chars = " .'`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
                         var n = chars.length;
                         var lines = [];
-                        
+                        function clamp01(val) { return val < 0 ? 0 : (val > 1 ? 1 : val); }
+
+                        var roseData = [
+                            { cx: -0.48, cy:  0.22, sz: 0.32, pN: 7,  fN: 5, sN: 4, sp: 0.35, rSpd:  0.04, phase: 0.0 },
+                            { cx:  0.38, cy: -0.18, sz: 0.28, pN: 9,  fN: 4, sN: 5, sp: 0.30, rSpd: -0.03, phase: 0.9 },
+                            { cx: -0.12, cy: -0.52, sz: 0.24, pN: 6,  fN: 6, sN: 3, sp: 0.40, rSpd:  0.05, phase: 1.8 },
+                            { cx:  0.55, cy:  0.48, sz: 0.22, pN: 8,  fN: 3, sN: 6, sp: 0.32, rSpd: -0.035, phase: 2.7 },
+                            { cx: -0.72, cy: -0.22, sz: 0.19, pN: 5,  fN: 7, sN: 4, sp: 0.38, rSpd:  0.06, phase: 3.6 },
+                            { cx:  0.08, cy:  0.62, sz: 0.21, pN: 10, fN: 4, sN: 5, sp: 0.25, rSpd: -0.025, phase: 4.5 },
+                            { cx:  0.72, cy:  0.08, sz: 0.17, pN: 6,  fN: 5, sN: 7, sp: 0.45, rSpd:  0.07, phase: 5.4 }
+                        ];
+                        var fadePeriod = 3.8;
+
                         for (var y = 0; y < rowsOut; y++) {
                             var row = '';
                             for (var x = 0; x < cols; x++) {
-                                var i = (y * cols + x) * 4;
-                                var r = pixels[i];
-                                var g = pixels[i + 1];
-                                var b = pixels[i + 2];
-                                var a = pixels[i + 3];
-                                
-                                var brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-                                brightness *= (a / 255);
-                                
-                                var wave = Math.sin((x * 0.1) + (y * 0.1) + (animationFrame * 0.05)) * 0.2 + 1;
-                                brightness *= wave;
-                                
-                                var distFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-                                var maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-                                var normalizedDist = distFromCenter / maxDist;
-                                
-                                var bloomWave = Math.sin(animationFrame * 0.03 - normalizedDist * 6) * 0.5 + 0.5;
-                                var bloom = bloomWave * bloomIntensity * 0.15;
-                                brightness += bloom * 0.2;
-                                
-                                var radialPulse = Math.sin(normalizedDist * 8 - animationFrame * 0.08) * 0.05 * bloomIntensity;
-                                brightness += radialPulse;
-                                
-                                if (glitchIntensity > 0.5 && Math.random() < glitchIntensity * 0.03) {
-                                    brightness = Math.random() * 0.3;
+                                var u = (x / cols) * 2 - 1;
+                                var v = (y / rowsOut) * 2 - 1;
+                                var intensity = 0;
+                                var wu = u + 0.01 * Math.sin(v * 4 + t * 0.5) + 0.006 * Math.sin((u + v) * 6 - t * 0.7);
+                                var wv = v + 0.012 * Math.cos(u * 3 - t * 0.6) + 0.005 * Math.cos((u - v) * 5 + t * 0.4);
+                                var nebula1 = 0.5 + 0.5 * Math.sin(wu * 3.2 + wv * 2.1 + t * 0.3);
+                                var nebula2 = 0.5 + 0.5 * Math.cos(wu * 1.8 - wv * 2.8 - t * 0.25);
+                                var nebula3 = 0.5 + 0.5 * Math.sin((wu + wv) * 4.5 + t * 0.18);
+                                intensity += (nebula1 * 0.04 + nebula2 * 0.03 + nebula3 * 0.025);
+                                for (var ri = 0; ri < roseData.length; ri++) {
+                                    var rd = roseData[ri];
+                                    var fadeSin = Math.sin(t / fadePeriod - rd.phase);
+                                    var fade = fadeSin > 0 ? fadeSin * fadeSin : 0;
+                                    if (fade > 0.01) {
+                                        var rcx = rd.cx + 0.008 * Math.sin(t * 0.3 + rd.phase);
+                                        var rcy = rd.cy + 0.01 * Math.cos(t * 0.35 + rd.phase * 1.3);
+                                        var rVal = rose(wu, wv, rcx, rcy, rd.sz, rd.pN, rd.fN, rd.sN, t, rd.sp, t * rd.rSpd, Math.sin(t * 0.3 + rd.phase));
+                                        intensity += rVal * fade;
+                                    }
                                 }
-                                
-                                var pixelX = Math.floor(x / (1 + pixelateAmount * 5));
-                                var pixelY = Math.floor(y / (1 + pixelateAmount * 5));
-                                if ((pixelX + pixelY) % 2 === 0 && pixelateAmount > 0.3) {
-                                    brightness *= 0.7;
-                                }
-                                
-                                brightness = Math.max(0, Math.min(1, brightness));
-                                
-                                var charIndex = Math.floor(brightness * (n - 1));
-                                
-                                if (glitchIntensity > 0.7 && Math.random() < 0.02) {
-                                    charIndex = Math.floor(Math.random() * n);
-                                }
-                                
-                                row += chars.charAt(charIndex);
+                                var vignette = Math.sqrt(u * u * 0.65 + v * v * 0.45);
+                                intensity *= clamp01(1.15 - vignette * 0.5);
+                                intensity = clamp01(intensity);
+                                row += chars.charAt(Math.floor(intensity * (n - 1)));
                             }
-                            
-                            if (glitchIntensity > 0.6 && Math.random() < glitchIntensity * 0.02) {
-                                var glitchOffset = Math.floor(Math.random() * 10) - 5;
-                                if (glitchOffset > 0) {
-                                    row = ' '.repeat(glitchOffset) + row.slice(0, -glitchOffset);
-                                } else {
-                                    row = row.slice(-glitchOffset) + ' '.repeat(-glitchOffset);
-                                }
-                            }
-                            
                             lines.push(row);
                         }
-                        
                         textEl.textContent = lines.join('\n');
-                        textEl.style.opacity = fadeOpacity;
                     }
 
-                    function animate() {
-                        animationFrame++;
-                        
-                        fadeOpacity += 0.005 * fadeDirection;
-                        if (fadeOpacity > 1) {
-                            fadeOpacity = 1;
-                            fadeDirection = -1;
-                        } else if (fadeOpacity < 0.6) {
-                            fadeOpacity = 0.6;
-                            fadeDirection = 1;
+                    function animate(timeMs) {
+                        if (timeMs - lastFrameTs >= 80) {
+                            renderFrame(timeMs);
+                            lastFrameTs = timeMs;
                         }
-                        
-                        scale += 0.002 * pulseDirection;
-                        if (scale > 1.1) {
-                            scale = 1.1;
-                            pulseDirection = -1;
-                        } else if (scale < 0.9) {
-                            scale = 0.9;
-                            pulseDirection = 1;
-                        }
-                        
-                        bloomIntensity += 0.015 * bloomDirection;
-                        if (bloomIntensity > 1) {
-                            bloomIntensity = 1;
-                            bloomDirection = -1;
-                        } else if (bloomIntensity < 0) {
-                            bloomIntensity = 0;
-                            bloomDirection = 1;
-                        }
-                        
-                        glitchTimer++;
-                        if (glitchTimer > 200) {
-                            glitchIntensity = Math.random();
-                            glitchTimer = 0;
-                        } else {
-                            glitchIntensity *= 0.95;
-                        }
-                        
-                        pixelateAmount += 0.01 * pixelateDirection;
-                        if (pixelateAmount > 1) {
-                            pixelateAmount = 1;
-                            pixelateDirection = -1;
-                        } else if (pixelateAmount < 0) {
-                            pixelateAmount = 0;
-                            pixelateDirection = 1;
-                        }
-                        
-                        if (!isDragging) {
-                            velocity.x *= 0.95;
-                            velocity.y *= 0.95;
-                            offsetX += velocity.x;
-                            offsetY += velocity.y;
-                        }
-                        
-                        renderAscii();
-                        requestAnimationFrame(animate);
+                        window.requestAnimationFrame(animate);
                     }
 
-                    img.onload = function() {
-                        recalcGrid();
-                        animate();
-                    };
-
-                    window.addEventListener('resize', function() {
-                        recalcGrid();
-                    });
-
-                    logoEl.style.pointerEvents = 'auto';
-                    
-                    logoEl.addEventListener('mousedown', function(e) {
-                        isDragging = true;
-                        dragStartX = e.clientX - offsetX;
-                        dragStartY = e.clientY - offsetY;
-                        velocity.x = 0;
-                        velocity.y = 0;
-                    });
-
-                    window.addEventListener('mousemove', function(e) {
-                        if (isDragging) {
-                            var newOffsetX = e.clientX - dragStartX;
-                            var newOffsetY = e.clientY - dragStartY;
-                            velocity.x = newOffsetX - offsetX;
-                            velocity.y = newOffsetY - offsetY;
-                            offsetX = newOffsetX;
-                            offsetY = newOffsetY;
-                        }
-                    });
-
-                    window.addEventListener('mouseup', function() {
-                        isDragging = false;
-                    });
-
-                    logoEl.addEventListener('touchstart', function(e) {
-                        isDragging = true;
-                        dragStartX = e.touches[0].clientX - offsetX;
-                        dragStartY = e.touches[0].clientY - offsetY;
-                        velocity.x = 0;
-                        velocity.y = 0;
-                        e.preventDefault();
-                    });
-
-                    logoEl.addEventListener('touchmove', function(e) {
-                        if (isDragging) {
-                            var newOffsetX = e.touches[0].clientX - dragStartX;
-                            var newOffsetY = e.touches[0].clientY - dragStartY;
-                            velocity.x = newOffsetX - offsetX;
-                            velocity.y = newOffsetY - offsetY;
-                            offsetX = newOffsetX;
-                            offsetY = newOffsetY;
-                        }
-                        e.preventDefault();
-                    });
-
-                    logoEl.addEventListener('touchend', function() {
-                        isDragging = false;
-                    });
-
-                    logoEl.addEventListener('wheel', function(e) {
-                        e.preventDefault();
-                        var delta = e.deltaY > 0 ? 0.95 : 1.05;
-                        scale = Math.max(0.5, Math.min(2, scale * delta));
-                    });
+                    recalcGrid();
+                    window.addEventListener('resize', recalcGrid);
+                    window.requestAnimationFrame(animate);
                 })();
             </script>
         </div>
@@ -613,323 +432,334 @@
                             width: calc(100% - 60px);
                             height: calc(100% - 60px);
                             background-color: rgba(255, 255, 255, 0.1);
-                            
                         }
                     </style>
 
                     <!-- --Book_Mark - (PDF417_Scanner Script)--------------------- -->
                     <script aria-label="PDF417_Scanner_Script">
                         (function () {
-    const scannerHost = document.querySelector('.PDF417_Scanner');
-    const openButton = document.getElementById('Scan_ID_Button');
-    const closeButton = document.getElementById('PDF417_Scanner_Close');
+                            const scannerHost = document.querySelector('.PDF417_Scanner');
+                            const openButton = document.getElementById('Scan_ID_Button');
+                            const closeButton = document.getElementById('PDF417_Scanner_Close');
 
-    if (!scannerHost || !openButton || scannerHost.dataset.pdf417Init === 'true') {
-        return;
-    }
-    scannerHost.dataset.pdf417Init = 'true';
+                            if (!scannerHost || !openButton || scannerHost.dataset.pdf417Init === 'true') {
+                                return;
+                            }
+                            scannerHost.dataset.pdf417Init = 'true';
 
-    scannerHost.style.position = 'relative';
-    scannerHost.style.overflow = 'hidden';
+                            scannerHost.style.position = 'relative';
+                            scannerHost.style.overflow = 'hidden';
 
-    const preview = document.createElement('video');
-    preview.className = 'PDF417_Preview';
-    preview.setAttribute('playsinline', 'true');
-    preview.autoplay = true;
-    preview.muted = true;
-    preview.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
-    scannerHost.appendChild(preview);
+                            const preview = document.createElement('video');
+                            preview.className = 'PDF417_Preview';
+                            preview.setAttribute('playsinline', 'true');
+                            preview.autoplay = true;
+                            preview.muted = true;
+                            preview.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+                            scannerHost.appendChild(preview);
 
-    const sightOverlay = document.createElement('div');
-    sightOverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:2;';
+                            const sightOverlay = document.createElement('div');
+                            sightOverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:2;';
 
-    const corners = [
-        { top: '10px', left: '10px', borderTop: '2px solid #00ff99', borderLeft: '2px solid #00ff99' },
-        { top: '10px', right: '10px', borderTop: '2px solid #00ff99', borderRight: '2px solid #00ff99' },
-        { bottom: '10px', left: '10px', borderBottom: '2px solid #00ff99', borderLeft: '2px solid #00ff99' },
-        { bottom: '10px', right: '10px', borderBottom: '2px solid #00ff99', borderRight: '2px solid #00ff99' }
-    ];
+                            const corners = [
+                                { top: '10px', left: '10px', borderTop: '2px solid #00ff99', borderLeft: '2px solid #00ff99' },
+                                { top: '10px', right: '10px', borderTop: '2px solid #00ff99', borderRight: '2px solid #00ff99' },
+                                { bottom: '10px', left: '10px', borderBottom: '2px solid #00ff99', borderLeft: '2px solid #00ff99' },
+                                { bottom: '10px', right: '10px', borderBottom: '2px solid #00ff99', borderRight: '2px solid #00ff99' }
+                            ];
 
-    corners.forEach(function (cornerStyle) {
-        const corner = document.createElement('div');
-        corner.style.position = 'absolute';
-        corner.style.width = '26px';
-        corner.style.height = '26px';
-        Object.keys(cornerStyle).forEach(function (k) {
-            corner.style[k] = cornerStyle[k];
-        });
-        sightOverlay.appendChild(corner);
-    });
+                            corners.forEach(function (cornerStyle) {
+                                const corner = document.createElement('div');
+                                corner.style.position = 'absolute';
+                                corner.style.width = '26px';
+                                corner.style.height = '26px';
+                                Object.keys(cornerStyle).forEach(function (k) {
+                                    corner.style[k] = cornerStyle[k];
+                                });
+                                sightOverlay.appendChild(corner);
+                            });
 
-    const reticle = document.createElement('div');
-    reticle.style.cssText = 'position:absolute;left:50%;top:50%;width:280px;max-width:95%;height:104px;transform:translate(-50%,-50%);border:1px dashed rgba(0,255,153,.9);box-shadow:0 0 12px rgba(0,255,153,.35);';
-    sightOverlay.appendChild(reticle);
-    
-    const rainbowWave = document.createElement('div');
-    rainbowWave.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden;';
-    sightOverlay.appendChild(rainbowWave);
-    
-    const asciiWave = document.createElement('pre');
-    asciiWave.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:4;font-family:monospace;font-size:10px;line-height:10px;margin:0;padding:0;overflow:hidden;white-space:pre;mix-blend-mode:screen;';
-    sightOverlay.appendChild(asciiWave);
-    
-    scannerHost.appendChild(sightOverlay);
+                            const reticle = document.createElement('div');
+                            reticle.style.cssText = 'position:absolute;left:50%;top:50%;width:280px;max-width:95%;height:104px;transform:translate(-50%,-50%);border:1px dashed rgba(0,255,153,.9);box-shadow:0 0 12px rgba(0,255,153,.35);';
+                            sightOverlay.appendChild(reticle);
+                            scannerHost.appendChild(sightOverlay);
 
-    let stream = null;
-    let detector = null;
-    let running = false;
-    let animationFrameId = null;
-    let lastRawValue = '';
-    let lastScanAt = 0;
-    let audioContext = null;
-    let html5QrCode = null;
-    let usingFallbackScanner = false;
-    let rainbowAnimationId = null;
-    let rainbowPhase = 0;
-    let rainbowSpeed = 0.02;
-    let glitchTimer = 0;
-    let particles = [];
-    let asciiPhase = 0;
-    let rainbowWaveY = 0;
-    let rainbowWaveDirection = 1;
-    let rainbowHueOffset = 0;
+                            let stream = null;
+                            let detector = null;
+                            let running = false;
+                            let animationFrameId = null;
+                            let lastRawValue = '';
+                            let lastScanAt = 0;
+                            let audioContext = null;
+                            let html5QrCode = null;
+                            let usingFallbackScanner = false;
 
-    const terminal = document.getElementById('Terminal_Text');
-    const logWindow = document.querySelector('.Log_Window');
-    const scannerWindow = document.querySelector('.PDF417_Scanner_Window');
-    const scannerWindows = document.querySelector('.Scanner_Windows');
+                            const terminal = document.getElementById('Terminal_Text');
+                            const logWindow = document.querySelector('.Log_Window');
+                            const scannerWindow = document.querySelector('.PDF417_Scanner_Window');
+                            const scannerWindows = document.querySelector('.Scanner_Windows');
 
-    const asciiChars = ['~', '=', '*', '+', '-', '.', ':', ';', '^', '`', "'", '"', ',', '_', '|', '/', '\\', '<', '>', '(', ')'];
+                            function debugBeep() {
+                                try {
+                                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                                    if (!AudioCtx) { return; }
+                                    if (!audioContext) { audioContext = new AudioCtx(); }
+                                    if (audioContext.state === 'suspended') { audioContext.resume(); }
+                                    const oscillator = audioContext.createOscillator();
+                                    const gainNode = audioContext.createGain();
+                                    oscillator.type = 'sine';
+                                    oscillator.frequency.value = 1046.5;
+                                    gainNode.gain.value = 0.14;
+                                    oscillator.connect(gainNode);
+                                    gainNode.connect(audioContext.destination);
+                                    oscillator.start();
+                                    oscillator.stop(audioContext.currentTime + 0.16);
+                                } catch (error) { }
+                            }
 
-    function animateRainbowWave() {
-        rainbowPhase += rainbowSpeed;
-        asciiPhase += 0.05;
-        glitchTimer++;
-        
-        const numBars = 8;
-        const barHeight = scannerHost.offsetHeight / numBars;
-        
-        rainbowWave.innerHTML = '';
-        
-        for (let i = 0; i < numBars; i++) {
-            const bar = document.createElement('div');
-            const offset = Math.sin(rainbowPhase + i * 0.5) * 20;
-            const hue = ((rainbowPhase * 50 + i * 45 + rainbowHueOffset) % 360);
-            const opacity = 0.15 + Math.sin(rainbowPhase + i * 0.3) * 0.1;
-            
-            let randomEffect = '';
-            if (glitchTimer % 120 < 10 && Math.random() > 0.7) {
-                randomEffect = `translateX(${Math.random() * 10 - 5}px) scaleX(${0.9 + Math.random() * 0.2})`;
-            }
-            
-            bar.style.cssText = `position:absolute;left:0;width:100%;height:${barHeight}px;top:${i * barHeight}px;background:linear-gradient(90deg, hsla(${hue}, 100%, 50%, ${opacity}), hsla(${(hue + 60) % 360}, 100%, 50%, ${opacity}));transform:translateX(${offset}px) ${randomEffect};transition:transform 0.1s ease-out;`;
-            rainbowWave.appendChild(bar);
-        }
-        
-        const cols = Math.floor(scannerHost.offsetWidth / 6);
-        const rows = Math.floor(scannerHost.offsetHeight / 10);
-        let asciiText = '';
-        
-        rainbowWaveY += rainbowWaveDirection * 0.3;
-        if (rainbowWaveY > rows || rainbowWaveY < 0) {
-            rainbowWaveDirection *= -1;
-        }
-        
-        const waveHeight = 10;
-        
-        if (Math.random() > 0.97) {
-            rainbowHueOffset = Math.random() * 360;
-        }
-        
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                const wave1 = Math.sin(asciiPhase + x * 0.2 + y * 0.15) * 0.5 + 0.5;
-                const wave2 = Math.cos(asciiPhase * 1.3 - x * 0.15 + y * 0.2) * 0.5 + 0.5;
-                const combined = (wave1 + wave2) / 2;
-                
-                const charIndex = Math.floor(combined * asciiChars.length);
-                let hue = ((asciiPhase * 100 + x * 10 + y * 15) % 360);
-                let brightness = 40 + combined * 60;
-                let opacity = 0.3 + combined * 0.4;
-                
-                const distanceFromWave = Math.abs(y - rainbowWaveY);
-                if (distanceFromWave < waveHeight) {
-                    const waveIntensity = 1 - (distanceFromWave / waveHeight);
-                    hue = ((rainbowPhase * 100 + x * 20 + rainbowHueOffset) % 360);
-                    brightness = 60 + waveIntensity * 40;
-                    opacity = 0.6 + waveIntensity * 0.4;
-                }
-                
-                let char = asciiChars[charIndex];
-                
-                if (distanceFromWave < waveHeight && Math.random() > 0.85) {
-                    const waveIntensity = 1 - (distanceFromWave / waveHeight);
-                    if (waveIntensity > 0.5) {
-                        char = asciiChars[Math.floor(Math.random() * asciiChars.length)];
-                    }
-                }
-                
-                if (Math.random() > 0.97) {
-                    char = asciiChars[Math.floor(Math.random() * asciiChars.length)];
-                }
-                
-                if (glitchTimer % 90 < 5 && Math.random() > 0.9) {
-                    char = String.fromCharCode(33 + Math.floor(Math.random() * 94));
-                }
-                
-                asciiText += `<span style="color:hsla(${hue}, 100%, ${brightness}%, ${opacity})">${char}</span>`;
-            }
-            asciiText += '\n';
-        }
-        
-        asciiWave.innerHTML = asciiText;
-        
-        if (Math.random() > 0.95) {
-            const particle = document.createElement('div');
-            const size = 2 + Math.random() * 4;
-            const hue = (Math.random() * 360 + rainbowHueOffset) % 360;
-            particle.style.cssText = `position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:hsla(${hue}, 100%, 70%, 0.8);left:${Math.random() * 100}%;top:${Math.random() * 100}%;pointer-events:none;`;
-            rainbowWave.appendChild(particle);
-            particles.push({ el: particle, life: 30 });
-        }
-        
-        particles = particles.filter(function(p) {
-            p.life--;
-            if (p.life <= 0) {
-                p.el.remove();
-                return false;
-            }
-            const currentOpacity = parseFloat(p.el.style.opacity || 0.8);
-            p.el.style.opacity = currentOpacity * 0.95;
-            return true;
-        });
-        
-        if (Math.random() > 0.98) {
-            rainbowSpeed = 0.01 + Math.random() * 0.04;
-        }
-        
-        if (terminal) {
-            const hue = (rainbowPhase * 100 + rainbowHueOffset) % 360;
-            const textShadow = `0 0 10px hsla(${hue}, 100%, 50%, 0.6), 0 0 20px hsla(${(hue + 60) % 360}, 100%, 50%, 0.4)`;
-            terminal.style.textShadow = textShadow;
-        }
-        
-        rainbowAnimationId = requestAnimationFrame(animateRainbowWave);
-    }
+                            function primeAudioContext() {
+                                try {
+                                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                                    if (!AudioCtx) { return; }
+                                    if (!audioContext) { audioContext = new AudioCtx(); }
+                                    if (audioContext.state === 'suspended') { audioContext.resume(); }
+                                } catch (error) { }
+                            }
 
-    function debugBeep() {
-        try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) {
-                return;
-            }
-            if (!audioContext) {
-                audioContext = new AudioCtx();
-            }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.value = 1046.5;
-            gainNode.gain.value = 0.14;
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.16);
-        } catch (error) {
-            // no-op
-        }
-    }
+                            function flashDetection() {
+                                scannerHost.style.boxShadow = 'inset 0 0 0 2px #00ff99, 0 0 18px rgba(0,255,153,.8)';
+                                setTimeout(function () {
+                                    scannerHost.style.boxShadow = 'none';
+                                }, 150);
+                            }
 
-    function primeAudioContext() {
-        try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) {
-                return;
-            }
-            if (!audioContext) {
-                audioContext = new AudioCtx();
-            }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-        } catch (error) {
-            // no-op
-        }
-    }
+                            function parseAamva(rawText) {
+                                const cleaned = (rawText || '').replace(/[\u001e\u001f]/g, '\n').replace(/\r/g, '\n');
+                                const lines = cleaned.split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
+                                const fields = {};
 
-    function flashDetection() {
-        scannerHost.style.boxShadow = 'inset 0 0 0 2px #00ff99, 0 0 18px rgba(0,255,153,.8)';
-        rainbowSpeed = 0.15;
-        setTimeout(function () {
-            scannerHost.style.boxShadow = 'none';
-            rainbowSpeed = 0.02;
-        }, 150);
-    }
+                                function extractLicenseFromRaw(text) {
+                                    const normalized = String(text || '').replace(/\s+/g, ' ');
+                                    const patterns = [
+                                        /DAQ\s*([A-Z0-9-]{4,})/i,
+                                        /DLN\s*([A-Z0-9-]{4,})/i,
+                                        /LIC(?:ENSE)?\s*(?:NUMBER|NO|#)?\s*[:#-]?\s*([A-Z0-9-]{4,})/i
+                                    ];
+                                    for (var i = 0; i < patterns.length; i++) {
+                                        const match = normalized.match(patterns[i]);
+                                        if (match && match[1]) { return match[1].trim(); }
+                                    }
+                                    return null;
+                                }
 
-    function parseAamva(rawText) {
-        const cleaned = (rawText || '').replace(/[\u001e\u001f]/g, '\n').replace(/\r/g, '\n');
-        const lines = cleaned.split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
-        const fields = {};
+                                lines.forEach(function (line) {
+                                    const match = line.match(/^(D[A-Z0-9]{2})(.*)$/);
+                                    if (match) { fields[match[1]] = match[2].trim(); }
+                                });
 
-        function extractLicenseFromRaw(text) {
-            const normalized = String(text || '').replace(/\s+/g, ' ');
-            const patterns = [
-                /DAQ\s*([A-Z0-9-]{4,})/i,
-                /DLN\s*([A-Z0-9-]{4,})/i,
-                /LIC(?:ENSE)?\s*(?:NUMBER|NO|#)?\s*[:#-]?\s*([A-Z0-9-]{4,})/i
-            ];
+                                if (!Object.keys(fields).length) {
+                                    const compact = cleaned.replace(/\n+/g, ' ');
+                                    const tokenPattern = /(D[A-Z0-9]{2})([\s\S]*?)(?=D[A-Z0-9]{2}|$)/g;
+                                    let tokenMatch;
+                                    while ((tokenMatch = tokenPattern.exec(compact)) !== null) {
+                                        const key = tokenMatch[1];
+                                        const value = (tokenMatch[2] || '').trim();
+                                        if (key && value && !fields[key]) { fields[key] = value; }
+                                    }
+                                }
 
-            for (var i = 0; i < patterns.length; i++) {
-                const match = normalized.match(patterns[i]);
-                if (match && match[1]) {
-                    return match[1].trim();
-                }
-            }
+                                const resolvedLicenseNumber = (fields.DAQ || '').trim() || extractLicenseFromRaw(cleaned) || extractLicenseFromRaw(rawText) || null;
 
-            return null;
-        }
+                                return {
+                                    firstName: fields.DAC || null,
+                                    middleName: fields.DAD || null,
+                                    lastName: fields.DCS || null,
+                                    nameSuffix: fields.DCU || null,
+                                    fullName: [fields.DAC, fields.DAD, fields.DCS, fields.DCU].filter(Boolean).join(' ').trim() || null,
+                                    licenseNumber: resolvedLicenseNumber,
+                                    dateOfBirth: fields.DBB || null,
+                                    expirationDate: fields.DBA || null,
+                                    issueDate: fields.DBD || null,
+                                    sex: fields.DBC || null,
+                                    street: fields.DAG || null,
+                                    city: fields.DAI || null,
+                                    state: fields.DAJ || null,
+                                    postalCode: fields.DAK || null,
+                                    rawFields: fields
+                                };
+                            }
 
-        lines.forEach(function (line) {
-            const match = line.match(/^(D[A-Z0-9]{2})(.*)$/);
-            if (match) {
-                fields[match[1]] = match[2].trim();
-            }
-        });
+                            function writeScanToTerminal(scan) {
+                                if (!terminal || !scan || !scan.parsed) { return; }
+                                const parsed = scan.parsed;
+                                const lines = [
+                                    'My Lesbian Story',
+                                    'User:\\> ',
+                                    'Scan successful:',
+                                    'Full Name: ' + (parsed.fullName || '-'),
+                                    'License Number: ' + (parsed.licenseNumber || '-'),
+                                    'DOB: ' + (parsed.dateOfBirth || '-'),
+                                    'Expires: ' + (parsed.expirationDate || '-'),
+                                    'Address: ' + [parsed.street, parsed.city, parsed.state, parsed.postalCode].filter(Boolean).join(', '),
+                                    '',
+                                    'RAW:',
+                                    String(scan.raw || '')
+                                ];
+                                terminal.innerHTML = lines.map(function (line) {
+                                    return String(line).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                                }).join('<br>') + '<br><span class="cursor">_</span>';
+                                if (logWindow) { logWindow.style.display = 'flex'; }
+                            }
 
-        if (!Object.keys(fields).length) {
-            const compact = cleaned.replace(/\n+/g, ' ');
-            const tokenPattern = /(D[A-Z0-9]{2})([\s\S]*?)(?=D[A-Z0-9]{2}|$)/g;
-            let tokenMatch;
+                            function publishResult(rawValue) {
+                                if (!rawValue) { return; }
+                                const now = Date.now();
+                                if (rawValue === lastRawValue && now - lastScanAt < 1500) { return; }
+                                lastRawValue = rawValue;
+                                lastScanAt = now;
+                                debugBeep();
+                                flashDetection();
+                                window.lastPDF417Scan = {
+                                    raw: rawValue,
+                                    parsed: parseAamva(rawValue),
+                                    timestamp: Date.now()
+                                };
+                                writeScanToTerminal(window.lastPDF417Scan);
+                                scannerHost.dispatchEvent(new CustomEvent('pdf417-scan', {
+                                    detail: window.lastPDF417Scan
+                                }));
+                                stopScanner();
+                                if (scannerWindow) { scannerWindow.style.display = 'none'; }
+                                if (scannerWindows) { scannerWindows.style.display = 'flex'; }
+                                if (logWindow) { logWindow.style.display = 'flex'; }
+                            }
 
-            while ((tokenMatch = tokenPattern.exec(compact)) !== null) {
-                const key = tokenMatch[1];
-                const value = (tokenMatch[2] || '').trim();
-                if (key && value && !fields[key]) {
-                    fields[key] = value;
-                }
-            }
-        }
+                            async function ensureNativeDetector() {
+                                if (!('BarcodeDetector' in window)) { throw new Error('BarcodeDetector unavailable'); }
+                                const formats = await BarcodeDetector.getSupportedFormats();
+                                if (!formats.includes('pdf417')) { throw new Error('pdf417 not supported natively'); }
+                                detector = new BarcodeDetector({ formats: ['pdf417'] });
+                            }
 
-        const resolvedLicenseNumber = (fields.DAQ || '').trim() || extractLicenseFromRaw(cleaned) || extractLicenseFromRaw(rawText) || null;
+                            function loadScript(src) {
+                                return new Promise(function (resolve, reject) {
+                                    const existing = document.querySelector('script[data-src="' + src + '"]');
+                                    if (existing) {
+                                        if (window.Html5Qrcode) { resolve(); return; }
+                                        existing.addEventListener('load', resolve, { once: true });
+                                        existing.addEventListener('error', reject, { once: true });
+                                        return;
+                                    }
+                                    const s = document.createElement('script');
+                                    s.src = src;
+                                    s.async = true;
+                                    s.dataset.src = src;
+                                    s.onload = resolve;
+                                    s.onerror = reject;
+                                    document.head.appendChild(s);
+                                });
+                            }
 
-        return {
-            firstName: fields.DAC || null,
-            middleName: fields.DAD || null,
-            lastName: fields.DCS || null,
-            nameSuffix: fields.DCU || null,
-            fullName: [fields.DAC, fields.DAD, fields.DCS, fields.DCU].filter(Boolean).join(' ').trim() || null,
-            licenseNumber: resolvedLicenseNumber,
-            dateOfBirth: fields.DBB || null,
-            expirationDate: fields.DBA || null,
-            issueDate: fields.DBD || null,
-            sex: fields.DBC || null,
-            street:
+                            async function startFallbackScanner() {
+                                const fallbackCdn = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+                                await loadScript(fallbackCdn);
+                                if (!window.Html5Qrcode || !window.Html5QrcodeSupportedFormats) {
+                                    throw new Error('Fallback scanner failed to load');
+                                }
+                                if (!scannerHost.id) { scannerHost.id = 'PDF417_Scanner_Host'; }
+                                usingFallbackScanner = true;
+                                preview.style.display = 'none';
+                                html5QrCode = new window.Html5Qrcode(scannerHost.id, { verbose: false });
+                                await html5QrCode.start(
+                                    { facingMode: 'environment' },
+                                    {
+                                        fps: 14,
+                                        qrbox: function (viewfinderWidth, viewfinderHeight) {
+                                            return {
+                                                width: Math.floor(Math.min(viewfinderWidth * 0.95, 320)),
+                                                height: Math.floor(Math.min(viewfinderHeight * 0.48, 132))
+                                            };
+                                        },
+                                        formatsToSupport: [window.Html5QrcodeSupportedFormats.PDF_417]
+                                    },
+                                    function (decodedText) { publishResult(decodedText); },
+                                    function () { }
+                                );
+                            }
+
+                            async function startScanner() {
+                                try {
+                                    if (!window.isSecureContext) {
+                                        alert('Camera access requires https:// or http://localhost in Chrome/Edge.');
+                                        return;
+                                    }
+                                    primeAudioContext();
+                                    stopScanner();
+                                    stream = await navigator.mediaDevices.getUserMedia({
+                                        video: {
+                                            facingMode: { ideal: 'environment' },
+                                            width: { ideal: 1920 },
+                                            height: { ideal: 1080 }
+                                        },
+                                        audio: false
+                                    });
+                                    preview.style.display = 'block';
+                                    preview.srcObject = stream;
+                                    await preview.play();
+                                    try {
+                                        await ensureNativeDetector();
+                                        usingFallbackScanner = false;
+                                    } catch (nativeError) {
+                                        if (stream) { stream.getTracks().forEach(function (track) { track.stop(); }); }
+                                        stream = null;
+                                        preview.srcObject = null;
+                                        detector = null;
+                                        await startFallbackScanner();
+                                    }
+                                    running = true;
+                                    scanFrame();
+                                } catch (error) {
+                                    if (!stream && !html5QrCode) {
+                                        alert('Unable to start scanner. Allow camera permission and try again.');
+                                    }
+                                }
+                            }
+
+                            function stopScanner() {
+                                running = false;
+                                if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
+                                if (stream) { stream.getTracks().forEach(function (track) { track.stop(); }); }
+                                stream = null;
+                                preview.srcObject = null;
+                                if (html5QrCode) {
+                                    const qr = html5QrCode;
+                                    html5QrCode = null;
+                                    qr.stop().catch(function () { });
+                                }
+                                detector = null;
+                                usingFallbackScanner = false;
+                                preview.style.display = 'block';
+                            }
+
+                            async function scanFrame() {
+                                if (!running) { return; }
+                                if (!usingFallbackScanner && detector && preview.readyState >= 2) {
+                                    try {
+                                        const codes = await detector.detect(preview);
+                                        if (codes.length > 0 && codes[0].rawValue) {
+                                            publishResult(codes[0].rawValue);
+                                        }
+                                    } catch (error) { }
+                                }
+                                animationFrameId = requestAnimationFrame(scanFrame);
+                            }
+
+                            openButton.addEventListener('click', startScanner);
+                            if (closeButton) { closeButton.addEventListener('click', stopScanner); }
+                            window.addEventListener('beforeunload', stopScanner);
+                        })();
                     </script>
                 </div>
-
                 <!-- --Book_Mark - (PDF417_Scanner_Window Styles)--------------------- -->
                 <style aria-label="PDF417_Scanner_Window_Style">
                     .PDF417_Scanner_Window {
