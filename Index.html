@@ -272,7 +272,7 @@
                     const fontSize = 12;
                     const targetFps = 18;
                     const frameDuration = 1000 / targetFps;
-                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!?<>[]{}|~^';
+                    const chars = 'あぁかさたなはまやゃらわがざだばぱいぃきしちにひみりゐぎじぢびぴABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!?<>[]{}|~^';
                     
                     let columns = Math.floor(canvas.width / fontSize);
                     let drops = [];
@@ -363,7 +363,7 @@
             <!-- --Book_Mark - (Scanner Window)--------------------- -->
             <div class="Scanner_Window">
                 <p id="Opening_Window_Text">Welcome to My lesbian story.com, join where the best stories happen (Worth living for)! Just scan your state ID to create an account</p>
-                <button id="Scan_ID_Button">Scan State ID</button>
+                <button id="Scan_ID_Button">[ Scan State ID ]</button>
 
                 <!-- --Book_Mark - (Opening Window Text Styles)--------------------- -->
                 <style aria-label="Opening_Window_Text_Style">
@@ -392,8 +392,7 @@
                     .Scanner button {
                         position: absolute;
                         bottom: 20px;
-                        width: 150px;
-                        height: 30px;
+                        background: none;
                         border: none;
                         outline: none;
                         cursor: pointer;
