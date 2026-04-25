@@ -269,15 +269,16 @@
                     }
                     resizeCanvas();
 
-                    const fontSize = 11;
-                    const targetFps = 12;
+                    const fontSize = 12;
+                    const targetFps = 18;
                     const frameDuration = 1000 / targetFps;
-                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!?<>[]{}|~^';
                     
                     let columns = Math.floor(canvas.width / fontSize);
                     let drops = [];
                     let columnHues = [];
                     let nextColorChangeTime = [];
+                    let dropSpeeds = [];
                     
                     function initDrops() {
                         resizeCanvas();
@@ -285,10 +286,12 @@
                         drops = [];
                         columnHues = [];
                         nextColorChangeTime = [];
+                        dropSpeeds = [];
                         for (let i = 0; i < columns; i++) {
-                            drops[i] = Math.random() * -100;
+                            drops[i] = Math.random() * -50;
                             columnHues[i] = Math.random() * 360;
                             nextColorChangeTime[i] = Date.now() + Math.random() * 3000 + 500;
+                            dropSpeeds[i] = Math.random() * 0.5 + 0.5;
                         }
                     }
                     initDrops();
@@ -297,7 +300,7 @@
                     let lastFrameTime = 0;
                     
                     function draw() {
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         
                         ctx.font = fontSize + 'px "Courier New", monospace';
@@ -322,13 +325,23 @@
                             
                             ctx.fillText(char, x, y);
                             
-                            ctx.shadowBlur = 0;
-                            
-                            if (y > canvas.height && Math.random() > 0.975) {
-                                drops[i] = 0;
+                            const trailLength = 3 + Math.floor(Math.random() * 3);
+                            for (let t = 1; t <= trailLength; t++) {
+                                const trailY = (drops[i] - t) * fontSize;
+                                const trailChar = chars[Math.floor(Math.random() * chars.length)];
+                                const opacity = 1 - (t / (trailLength + 1));
+                                ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${opacity * 0.6})`;
+                                ctx.fillText(trailChar, x, trailY);
                             }
                             
-                            drops[i]++;
+                            ctx.shadowBlur = 0;
+                            
+                            if (y > canvas.height && Math.random() > 0.95) {
+                                drops[i] = 0;
+                                dropSpeeds[i] = Math.random() * 0.5 + 0.5;
+                            }
+                            
+                            drops[i] += dropSpeeds[i];
                         }
                     }
 
