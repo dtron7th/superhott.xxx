@@ -885,6 +885,8 @@
                             var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || '').replace(/\/$/, '');
                             var counterStream = null;
                             var counterStreamRetryTimer = null;
+                            var counterPollTimer = null;
+                            var counterPollInFlight = false;
 
                             function escapeHtml(value) {
                                 return String(value || '')
@@ -1016,6 +1018,26 @@
                                     }
                                     counterStreamRetryTimer = setTimeout(startCounterStream, 3000);
                                 };
+                            }
+
+                            function startCounterPolling() {
+                                if (counterPollTimer) {
+                                    return;
+                                }
+
+                                counterPollTimer = setInterval(function () {
+                                    if (document.hidden || counterPollInFlight) {
+                                        return;
+                                    }
+                                    counterPollInFlight = true;
+                                    updateUserCount()
+                                        .catch(function () {
+                                            // keep last rendered count on poll failure
+                                        })
+                                        .then(function () {
+                                            counterPollInFlight = false;
+                                        });
+                                }, 10000);
                             }
 
                             async function updateUserCount() {
@@ -1415,12 +1437,14 @@
 
                             updateUserCount();
                             startCounterStream();
+                            startCounterPolling();
                             renderTerminal();
 
                             document.addEventListener('visibilitychange', function () {
                                 if (!document.hidden) {
                                     updateUserCount();
                                     startCounterStream();
+                                    startCounterPolling();
                                 }
                             });
 
@@ -1432,6 +1456,10 @@
                                 if (counterStreamRetryTimer) {
                                     clearTimeout(counterStreamRetryTimer);
                                     counterStreamRetryTimer = null;
+                                }
+                                if (counterPollTimer) {
+                                    clearInterval(counterPollTimer);
+                                    counterPollTimer = null;
                                 }
                             });
 
