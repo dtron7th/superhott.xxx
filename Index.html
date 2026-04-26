@@ -1755,6 +1755,29 @@
                         }
                     }
 
+                    function requestFullscreenMode() {
+                        var root = document.documentElement;
+                        if (!root) {
+                            return;
+                        }
+                        if (document.fullscreenElement) {
+                            return;
+                        }
+
+                        var request =
+                            root.requestFullscreen ||
+                            root.webkitRequestFullscreen ||
+                            root.msRequestFullscreen;
+
+                        if (typeof request === 'function') {
+                            try {
+                                request.call(root);
+                            } catch (error) {
+                                // ignore fullscreen errors
+                            }
+                        }
+                    }
+
                     function showAccountCreatedWindow(matchedHash) {
                         if (!accountCreatedWindow || !accountCreatedMessage) {
                             return;
@@ -1783,8 +1806,9 @@
                                 if (idScannerRoot) {
                                     idScannerRoot.style.display = 'none';
                                 }
+                                requestFullscreenMode();
                                 loginTransitionTimer = null;
-                            }, 1000);
+                            }, 3000);
                         });
                     }
 
@@ -1838,10 +1862,14 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
+                display: none;
             }
         </style>
     </div>
     <div class="Page_1_Main">
+        <div class="Page_1_Menu">
+            <button ></button>
+        </div>
         <style>
             .Page_1_Main {
                 width: 100dvw;
