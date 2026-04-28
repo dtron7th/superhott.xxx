@@ -18,7 +18,7 @@
             --Main_UI_Text_Color: #ffffff;
             --Main_UI_Backdrop: blur(20px);
             --Main_UI_Background: #000000;
-            --Main_Font_Size: 10px;
+            --Main_Font_Size: 12px;
             --Main_Border: 1px solid rgb(94, 94, 94);
             
             --UI_Background_Hover: #d6d6d6;
@@ -1868,7 +1868,6 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
-                display: none;
             }
         </style>
     </div>
@@ -2015,6 +2014,7 @@
                                     document.querySelector('.P1_Menu_Window-Profile_Window-Tabs-Tab_Bank'),
                                     document.querySelector('.P1_Menu_Window-Profile_Window-Tabs-Tab_Delete')
                                 ];
+                                var profileWindow = document.querySelector('.P1_Menu_Window-Profile_Window');
 
                                 function showTab(index) {
                                     tabContainers.forEach(function(tab, i) {
@@ -2022,15 +2022,43 @@
                                             tab.style.display = (i === index) ? 'flex' : 'none';
                                         }
                                     });
+                                    sideButtons.forEach(function(button, i) {
+                                        if (i < tabContainers.length) {
+                                            if (i === index) {
+                                                button.style.backgroundColor = 'var(--UI_Background_Hover)';
+                                                button.style.color = 'var(--UI_Text_Color_Hover)';
+                                            } else {
+                                                button.style.backgroundColor = '';
+                                                button.style.color = '';
+                                            }
+                                        }
+                                    });
                                 }
 
                                 showTab(0);
 
                                 sideButtons.forEach(function(button, index) {
-                                    button.addEventListener('click', function() {
-                                        showTab(index);
-                                    });
+                                    if (index < tabContainers.length) {
+                                        button.addEventListener('click', function() {
+                                            showTab(index);
+                                        });
+                                    }
                                 });
+
+                                // Observer to reset to Profile tab when profile window is closed
+                                if (profileWindow) {
+                                    var observer = new MutationObserver(function(mutations) {
+                                        mutations.forEach(function(mutation) {
+                                            if (mutation.attributeName === 'style') {
+                                                var display = profileWindow.style.display;
+                                                if (display === 'none' || display === '') {
+                                                    showTab(0);
+                                                }
+                                            }
+                                        });
+                                    });
+                                    observer.observe(profileWindow, { attributes: true });
+                                }
                             })();
 
                             //P1_Menu_Window-Profile_Window-Side_Buttons-Close_Button.//
@@ -2052,6 +2080,7 @@
                                 var profileButton = document.getElementById('P1_Menu_Window_Profile');
                                 if (profileWindow && profileWindow.style.display !== 'none') {
                                     if (!profileWindow.contains(event.target) && event.target !== profileButton) {
+                                        event.__p1ClosedProfileWindow = true;
                                         profileWindow.style.display = 'none';
                                     }
                                 }
@@ -2076,7 +2105,7 @@
                             align-items: center;
                             overflow: hidden;
                             flex-direction: column;
-                            
+                            display: none;
                         }
                     </style>
                     <script aria-label="P1_Menu_Window-Profile_Window_Script">
@@ -2104,7 +2133,7 @@
                         align-items: center;
                         overflow: hidden;
                         flex-direction: column;
-                        
+                        display: none;
                     }
 
                     .P1_Activate_Menu_Window > button {
@@ -2132,6 +2161,12 @@
 
                     var menuButton = document.getElementById('P1_Activate_Menu_Button');
                     var menuWindow = document.querySelector('.P1_Activate_Menu_Window');
+                    var profileWindow = document.querySelector('.P1_Menu_Window-Profile_Window');
+                    var profileButton = document.getElementById('P1_Menu_Window_Profile');
+
+                    function isVisible(element) {
+                        return !!(element && window.getComputedStyle(element).display !== 'none');
+                    }
 
                     if (menuButton && menuWindow) {
                         menuButton.addEventListener('click', function (event) {
@@ -2140,6 +2175,18 @@
                         });
 
                         document.addEventListener('click', function (event) {
+                            if (event.__p1ClosedProfileWindow) {
+                                return;
+                            }
+
+                            if (
+                                isVisible(profileWindow) &&
+                                !profileWindow.contains(event.target) &&
+                                event.target !== profileButton
+                            ) {
+                                return;
+                            }
+
                             if (!menuWindow.contains(event.target) && event.target !== menuButton) {
                                 menuWindow.style.display = 'none';
                             }
@@ -2200,6 +2247,159 @@
             </script>
         </div>
 
+        <div class="Page_1-Clock">
+            <div class="Clock_Date-Time_Group">
+                <span id="CDTG_Main_Clock">00:00:00:000</span>
+                <span id="CDTG_Main_Date">Month - Day - Year</span>
+
+                <style aria-label="Page_1_Clock_Style">
+                    .Clock_Date-Time_Group {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        
+                    }
+
+                    #CDTG_Main_Clock {
+                        position: absolute;
+                        font-size: 20px;
+                        color: var(--Main_UI_Text_Color);
+                    }
+
+                    #CDTG_Main_Date {
+                        position: absolute;
+                        top: 20px;
+                        width: 200px;
+                        font-size: 12px;
+                        color: var(--Main_UI_Text_Color);
+                        display: flex;
+                        justify-content: center;
+                    }
+                </style>
+                <script aria-label="Page_1_Clock_Script">
+
+                    (function() {
+                        var clockElement = document.getElementById('CDTG_Main_Clock');
+                        var dateElement = document.getElementById('CDTG_Main_Date');
+                        
+                        var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                          'July', 'August', 'September', 'October', 'November', 'December'];
+                        
+                        function updateClock() {
+                            var now = new Date();
+                            var hours = String(now.getHours()).padStart(2, '0');
+                            var minutes = String(now.getMinutes()).padStart(2, '0');
+                            var seconds = String(now.getSeconds()).padStart(2, '0');
+                            var milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+                            
+                            if (clockElement) {
+                                clockElement.textContent = hours + ':' + minutes + ':' + seconds + ':' + milliseconds;
+                            }
+                            
+                            if (dateElement) {
+                                var month = monthNames[now.getMonth()];
+                                var day = now.getDate();
+                                var year = now.getFullYear();
+                                dateElement.textContent = month + ' - ' + day + ' - ' + year;
+                            }
+                        }
+                        
+                        updateClock();
+                        setInterval(updateClock, 10);
+                    })();
+
+
+                </script>
+            </div>
+            <style aria-label="Page_1_Clock_Style">
+                .Page_1-Clock {
+                    position: absolute;
+                    top: 160px;
+                }
+            </style>
+            <script aria-label="Page_1_Clock_Script">
+
+            </script>
+        </div>
+        <div class="Page_1_Main_Buttons">
+            <button id="Page_1_Main_Buttons_">[ Find ]</button>
+            <button id="Page_1_Main_Buttons_">[ Message ]</button>
+            <button id="Page_1_Main_Buttons_">[ Travel ]</button>
+            <button id="Page_1_Main_Buttons_">[ Market ]</button>
+
+            <style>
+                .Page_1_Main_Buttons {
+                    position: absolute;
+                    top: 240px;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+                }
+
+                .Page_1_Main_Buttons > button {
+                    border: none;
+                    outline: none;
+                    background: none;
+                    color: var(--Main_UI_Text_Color);
+                    font-size: var(--Main_Font_Size);
+                    display: flex;
+                    cursor: pointer;
+                }
+            </style>
+            <script>
+
+            </script>
+        </div>
+
+        <div class="Page_1_Post_Section">
+            <button id="Post_Section_Create_Post_Button">[ Create Post ]</button>
+
+            <div class="Post_Section_Main_Post">
+                <style aria-label="Post_Section_Main_Post_Style">
+                    .Post_Section_Main_Post {
+                        position: absolute;
+                        bottom: 0px;
+                        width: 100%;
+                        height: calc(100% - 60px);
+                        border: var(--Main_Border);
+                    }
+                </style>
+                <script aria-label="Post_Section_Main_Post_Script">
+
+                </script>
+
+            </div>
+
+            <style aria-label="Page_1_Post_Section_Style">
+                .Page_1_Post_Section {
+                    position: absolute;
+                    bottom: 10px;
+                    width: calc(100% - 20px);
+                    height: calc(100% - 300px);
+                    border: var(--Main_Border);
+                    display: flex;
+                    justify-content: center;
+
+                }
+
+                .Page_1_Post_Section > #Post_Section_Create_Post_Button {
+                    position: absolute;
+                    top: 20px;
+                    border: none;
+                    outline: none;
+                    background: none;
+                    color: var(--Main_UI_Text_Color);
+                    font-size: var(--Main_Font_Size);
+                    display: flex;
+                    cursor: pointer;
+                }
+            </style>
+            <Script aria-label="Page_1_Post_Section_Script">
+
+            </Script>
+        </div>
+
         
         <style>
             .Page_1_Main {
@@ -2210,6 +2410,7 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
+                display: none;
             }
         </style>
         <script aria-label="Page_1_Main_Script">
