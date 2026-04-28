@@ -20,6 +20,12 @@
             --Main_UI_Background: #000000;
             --Main_Font_Size: 10px;
             --Main_Border: 1px solid rgb(94, 94, 94);
+            
+            --UI_Background_Hover: #d6d6d6;
+            --UI_Text_Color_Hover: #000000;
+
+            --Window_Bottom_Buttons_Background:rgb(0, 0, 0);
+            --Window_Bottom_Buttons_Text_Color: #ffffff;
         }
     </style>
 
@@ -83,7 +89,7 @@
                 justify-content: center;
             }
 
-            .Dev_Settings .Buttons {
+            .Dev_Settings > .Buttons {
                 display: flex;
                 flex-direction: column;
                 gap: 5px;
@@ -93,7 +99,7 @@
                 justify-content: center;
             }
 
-            .Dev_Settings .Buttons button {
+            .Dev_Settings > .Buttons > button {
                 width: 20px;
                 height: 20px;
                 background: rgb(0, 119, 255);
@@ -192,7 +198,7 @@
                     overflow: hidden;
                 }
 
-                .Ascii_Logo p {
+                .Ascii_Logo > p {
                     animation: Ascii_Rainbow_Fade 24s ease-in-out infinite;
                 }
 
@@ -382,14 +388,14 @@
                         color: var(--Main_UI_Text_Color);
                     }
 
-                    .Scanner .Scanner_Window p {
+                    .Scanner > .Scanner_Window > p {
                         position: absolute;
                         top: 20px;
                         width: calc(100% - 40px);
                         text-align: center;
                     }
                     
-                    .Scanner button {
+                    .Scanner > .Scanner_Window > button {
                         position: absolute;
                         bottom: 20px;
                         background: none;
@@ -441,7 +447,7 @@
                     align-items: center;
                 }
 
-                .Counters span {
+                .Counters > span {
                     margin: 0 10px;
                     font-size: var(--Main_Font_Size);
                     color: var(--Main_UI_Text_Color);
@@ -854,7 +860,7 @@
                             align-items: center;
                         }
 
-                        .Log_Terminal #Terminal_Text {
+                        .Log_Terminal > #Terminal_Text {
                             position: absolute;
                             bottom: 10px;
                             width: calc(100% - 20px);
@@ -1130,7 +1136,7 @@
                                 }
 
                                 var age = calculateAge(parsed.dateOfBirth);
-                                var isEligible = age !== null && age >= 21;//Age requirement var//
+                                var isEligible = age !== null && age >= 18;//Age requirement var//
                                 var eligibilityMessage = isEligible
                                     ? 'you are eligible to create an account'
                                     : 'must be 21 or older to enter';
@@ -1662,7 +1668,7 @@
                     display: none;
                 }
 
-                .Account_Created_Window #Account_Created_Window_Title {
+                .Account_Created_Window > #Account_Created_Window_Title {
                     position: absolute;
                     top: 20px;
                     color: white;
@@ -1671,7 +1677,7 @@
                     
                 }
                 
-                .Account_Created_Window #Account_Created_Window_Message {
+                .Account_Created_Window > #Account_Created_Window_Message {
                     position: absolute;
                     top: 50px;
                     width: 200px;
@@ -1681,7 +1687,7 @@
                     
                 }
 
-                .Account_Created_Window .Account_Created_Window_Bottom_Buttons {
+                .Account_Created_Window > .Account_Created_Window_Bottom_Buttons {
                     position: absolute;
                     bottom: 20px;
                     display: flex;
@@ -1690,7 +1696,7 @@
                     gap: 20px;
                 }
                 
-                .Account_Created_Window .Account_Created_Window_Bottom_Buttons button {
+                .Account_Created_Window > .Account_Created_Window_Bottom_Buttons > button {
                     border: none;
                     outline: none;
                     background: transparent;
@@ -1862,14 +1868,339 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
-                
+                display: none;
             }
         </style>
     </div>
     <div class="Page_1_Main">
         <div class="Page_1_Menu">
-            <button ></button>
+            <button id="P1_Activate_Menu_Button">[ Menu ]</button>
+            
+            <div class="P1_Activate_Menu_Window">
+                <button id="P1_Menu_Window_Profile">- Profile -------</button>
+                <button id="P1_Menu_Window_Payment">- Payment -------</button>
+                <button id="P1_Menu_Window_Storage">- Storage -------</button>
+                <button id="P1_Menu_Window_Help">- Help ----------</button>
+                <button id="P1_Menu_Window_Settings">- Settings ------</button>
+                <button id="P1_Menu_Window_LogOut">- Log out -------</button>
+
+
+                <div class="P1_Menu_Window-Profile_Window">
+                    <div class="P1_Menu_Window-Profile_Window-Side_Buttons">
+                        <button id="P1_Menu_Window-Profile_Window-Side_Buttons-Profile">1: Profile -</button>
+                        <button id="P1_Menu_Window-Profile_Window-Side_Buttons-Details">2: Details -</button>
+                        <button id="P1_Menu_Window-Profile_Window-Side_Buttons-Bank">3: Bank ----</button>
+                        <button id="P1_Menu_Window-Profile_Window-Side_Buttons-Delete">4: Delete --</button>
+                        <button id="P1_Menu_Window-Profile_Window-Side_Buttons-Close_Button">5: Close ---</button>
+                        
+
+                        <style aria-label="P1_Menu_Window-Profile_Window-Side_Buttons_Style">
+                            .P1_Menu_Window-Profile_Window-Side_Buttons {
+                                position: absolute;
+                                left: 0px;
+                                width: 100px;
+                                height: 100%;
+                                background-color: #492129;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: start;
+                                align-items: flex-start;                   
+                            }
+
+                            .P1_Menu_Window-Profile_Window-Side_Buttons > button {
+                                width: 100%;
+                                height: 20px;
+                                background: none;
+                                color: var(--Main_UI_Text_Color);
+                                font-size: var(--Main_Font_Size);
+                                border: none;
+                                display: flex;
+                                justify-content: left;
+                                align-items: center;
+                                text-indent: 10px;
+                                overflow: hidden;
+                            }
+
+                            .P1_Menu_Window-Profile_Window-Side_Buttons > button:hover {
+                                background-color: var(--UI_Background_Hover);
+                                color: var(--UI_Text_Color_Hover);
+                            }
+
+                        </style>
+                            
+                        </script>
+                    </div>
+                    <div class="P1_Menu_Window-Profile_Window-Tabs">
+                        <div class="P1_Menu_Window-Profile_Window-Tabs-Tab_Profile">
+                            <style aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Profile_Style">
+                                .P1_Menu_Window-Profile_Window-Tabs-Tab_Profile {
+                                    position: absolute;
+                                    right: 0px;
+                                    width: calc(100% - 100px);
+                                    height: 100%;
+                                    background-color: #ff6688;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;                   
+                                }
+                            </style>
+                            <script aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Profile_Script">
+                                
+                            </script>
+                        </div>
+                        <div class="P1_Menu_Window-Profile_Window-Tabs-Tab_Details">
+                            <style aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Details_Style">
+                                .P1_Menu_Window-Profile_Window-Tabs-Tab_Details {
+                                    position: absolute;
+                                    right: 0px;
+                                    width: calc(100% - 100px);
+                                    height: 100%;
+                                    background-color: #914152;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;                   
+                                }
+                            </style>
+                            <script aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Details_Script">
+                                
+                            </script>
+                        </div>
+                        <div class="P1_Menu_Window-Profile_Window-Tabs-Tab_Bank">
+                            <style aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Bank_Style">
+                                .P1_Menu_Window-Profile_Window-Tabs-Tab_Bank {
+                                    position: absolute;
+                                    right: 0px;
+                                    width: calc(100% - 100px);
+                                    height: 100%;
+                                    background-color: #a166ff;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;                   
+                                }
+                            </style>
+                            <script aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Bank_Script">
+
+                                
+
+                                
+                            </script>
+                        </div>
+                        <div class="P1_Menu_Window-Profile_Window-Tabs-Tab_Delete">
+                            <style aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Delete_Style">
+                                .P1_Menu_Window-Profile_Window-Tabs-Tab_Delete {
+                                    position: absolute;
+                                    right: 0px;
+                                    width: calc(100% - 100px);
+                                    height: 100%;
+                                    background-color: #47267e;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;                   
+                                }
+                            </style>
+                            <script aria-label="P1_Menu_Window-Profile_Window-Tabs-Tab_Delete_Script">
+
+                            </script>
+                        </div>
+
+                        <style>
+
+                        </style>
+                        <script>
+                            (function() {
+                                var sideButtons = document.querySelectorAll('.P1_Menu_Window-Profile_Window-Side_Buttons > button');
+                                var tabContainers = [
+                                    document.querySelector('.P1_Menu_Window-Profile_Window-Tabs-Tab_Profile'),
+                                    document.querySelector('.P1_Menu_Window-Profile_Window-Tabs-Tab_Details'),
+                                    document.querySelector('.P1_Menu_Window-Profile_Window-Tabs-Tab_Bank'),
+                                    document.querySelector('.P1_Menu_Window-Profile_Window-Tabs-Tab_Delete')
+                                ];
+
+                                function showTab(index) {
+                                    tabContainers.forEach(function(tab, i) {
+                                        if (tab) {
+                                            tab.style.display = (i === index) ? 'flex' : 'none';
+                                        }
+                                    });
+                                }
+
+                                showTab(0);
+
+                                sideButtons.forEach(function(button, index) {
+                                    button.addEventListener('click', function() {
+                                        showTab(index);
+                                    });
+                                });
+                            })();
+
+                            //P1_Menu_Window-Profile_Window-Side_Buttons-Close_Button.//
+
+
+                            (function() {
+                                var closeButton = document.getElementById('P1_Menu_Window-Profile_Window-Side_Buttons-Close_Button');
+                                var profileWindow = document.querySelector('.P1_Menu_Window-Profile_Window');
+                                
+                                if (closeButton && profileWindow) {
+                                    closeButton.addEventListener('click', function() {
+                                        profileWindow.style.display = 'none';
+                                    });
+                                }
+                            })();
+
+                            document.addEventListener('click', function(event) {
+                                var profileWindow = document.querySelector('.P1_Menu_Window-Profile_Window');
+                                var profileButton = document.getElementById('P1_Menu_Window_Profile');
+                                if (profileWindow && profileWindow.style.display !== 'none') {
+                                    if (!profileWindow.contains(event.target) && event.target !== profileButton) {
+                                        profileWindow.style.display = 'none';
+                                    }
+                                }
+                            });
+
+                            
+
+                        </script>
+                    </div>
+                    
+                    <style aria-label="P1_Menu_Window-Profile_Window_Style">
+                        .P1_Menu_Window-Profile_Window {
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 340px;
+                            height: 220px;
+                            background-color: var(--Main_UI_Background);
+                            border: var(--Main_Border);
+                            display: flex;
+                            align-items: center;
+                            overflow: hidden;
+                            flex-direction: column;
+                            
+                        }
+                    </style>
+                    <script aria-label="P1_Menu_Window-Profile_Window_Script">
+                        (function() {
+                            var profileWindow = document.querySelector('.P1_Menu_Window-Profile_Window');
+                            var profileButton = document.getElementById('P1_Menu_Window_Profile');
+                            
+                            if (profileButton && profileWindow) {
+                                profileButton.addEventListener('click', function() {
+                                    profileWindow.style.display = 'flex';
+                                });
+                            }
+                        })();
+                    </script>
+                </div>
+
+                <style aria-label="P1_Activate_Menu_Window_Style">
+                    
+                    .P1_Activate_Menu_Window {
+                        width: 120px;
+                        height: 120px;
+                        background-color: var(--Main_UI_Background);
+                        border: var(--Main_Border);
+                        display: flex;
+                        align-items: center;
+                        overflow: hidden;
+                        flex-direction: column;
+                        
+                    }
+
+                    .P1_Activate_Menu_Window > button {
+                        width: 100%;
+                        height: 20px;
+                        background: none;
+                        color: var(--Main_UI_Text_Color);
+                        font-size: var(--Main_Font_Size);
+                        border: none;
+                        display: flex;
+                        justify-content: left;
+                        align-items: center;
+                        text-indent: 10px;
+                        overflow: hidden;
+                    }
+
+                    .P1_Activate_Menu_Window > button:hover {
+                        background-color: var(--UI_Background_Hover);
+                        color: var(--UI_Text_Color_Hover);
+                    }
+                </style>
+                <script aria-label="P1_Activate_Menu_Window_Script">
+
+                    //P1_Activate_Menu_Window.//
+
+                    var menuButton = document.getElementById('P1_Activate_Menu_Button');
+                    var menuWindow = document.querySelector('.P1_Activate_Menu_Window');
+
+                    if (menuButton && menuWindow) {
+                        menuButton.addEventListener('click', function (event) {
+                            event.stopPropagation();
+                            menuWindow.style.display = menuWindow.style.display === 'flex' ? 'none' : 'flex';
+                        });
+
+                        document.addEventListener('click', function (event) {
+                            if (!menuWindow.contains(event.target) && event.target !== menuButton) {
+                                menuWindow.style.display = 'none';
+                            }
+                        });
+                    }
+
+                    //P1_Menu_Window_Profile.//
+
+                    //P1_Menu_Window_LogOut.//
+
+                    var logOutButton = document.getElementById('P1_Menu_Window_LogOut');
+                    var page1Main = document.querySelector('.Page_1_Main');
+                    var idScannerRoot = document.querySelector('.Id_Scanner');
+                    
+                    if (logOutButton) {
+                        logOutButton.addEventListener('click', function () {
+                            if (page1Main) {
+                                page1Main.style.display = 'none';
+                            }
+                            if (idScannerRoot) {
+                                idScannerRoot.style.display = 'flex';
+                            }
+                            var menuWindow = document.querySelector('.P1_Activate_Menu_Window');
+                            if (menuWindow) {
+                                menuWindow.style.display = 'none';
+                            }
+                        });
+                    }
+
+                </script>
+            </div>
+
+            <style aria-label="Page_1_Menu_Style">
+                .Page_1_Menu {
+                    position: absolute;
+                    top: 10px;
+                    left: 10px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: left;
+                    gap: 10px;
+                    overflow: hidden;
+                }
+
+                .Page_1_Menu > #P1_Activate_Menu_Button {
+                    border: none;
+                    outline: none;
+                    background: none;
+                    color: var(--Main_UI_Text_Color);
+                    font-size: var(--Main_Font_Size);
+                    display: flex;
+                    cursor: pointer;
+                }
+            </style>
+            <script aria-label="Page_1_Menu_Script">
+
+            </script>
         </div>
+
+        
         <style>
             .Page_1_Main {
                 width: 100dvw;
@@ -1882,6 +2213,8 @@
             }
         </style>
         <script aria-label="Page_1_Main_Script">
+
+        
             
         </script>
     </div>
