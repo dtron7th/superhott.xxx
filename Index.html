@@ -1712,13 +1712,20 @@
                 (function () {
                     var scanner = document.querySelector('.PDF417_Scanner');
                     var idScannerRoot = document.querySelector('.Id_Scanner');
-                    var page1Main = document.querySelector('.Page_1_Main');
+                    var page1Main = null;
                     var accountCreatedWindow = document.querySelector('.Account_Created_Window');
                     var accountCreatedMessage = document.getElementById('Account_Created_Window_Message');
                     var accountCreatedLoginButton = document.getElementById('Account_Created_Window_Login');
                     var accountCreatedCloseButton = document.getElementById('Account_Created_Window_Close');
                     var ACCOUNT_API_BASE = String(window.ACCOUNT_API_BASE || '').replace(/\/$/, '');
                     var loginTransitionTimer = null;
+
+                    function getPage1Main() {
+                        if (!page1Main) {
+                            page1Main = document.querySelector('.Page_1_Main');
+                        }
+                        return page1Main;
+                    }
 
                     function escapeHtml(value) {
                         return String(value || '')
@@ -1806,8 +1813,9 @@
                                 clearTimeout(loginTransitionTimer);
                             }
                             loginTransitionTimer = setTimeout(function () {
-                                if (page1Main) {
-                                    page1Main.style.display = 'flex';
+                                var pageMain = getPage1Main();
+                                if (pageMain) {
+                                    pageMain.style.display = 'flex';
                                 }
                                 if (idScannerRoot) {
                                     idScannerRoot.style.display = 'none';
