@@ -378,6 +378,7 @@
                         height: 200px;
                         background-color: var(--Main_UI_Background);
                         border: var(--Main_Border);
+                        backdrop-filter: var(--Main_UI_Backdrop);
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -441,7 +442,7 @@
                     height: 50px;
                     border: var(--Main_Border);
                     background-color: var(--Main_UI_Background);
-                    
+                    backdrop-filter: var(--Main_UI_Backdrop);
                     display: flex;
                     justify-content: center;
                     align-items: center;
@@ -1665,6 +1666,7 @@
                     overflow: hidden;
                     background-color: var(--Main_UI_Background);
                     border: var(--Main_Border);
+                    backdrop-filter: var(--Main_UI_Backdrop);
                     display: none;
                 }
 
@@ -1876,7 +1878,6 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
-                
             }
         </style>
     </div>
@@ -2429,6 +2430,196 @@
             <button id="Post_Section_Create_Post_Button">[ Create Post ]</button>
 
             <div class="Post_Section_Main_Post">
+                <div class="Post_Section_Main_Post_Container">
+                    <div class="User_Post_Box">
+                        <div class="User_Post_Box_Profile_Image">
+                            <img class="User_Post_Box_Profile_Image-User_Image" src="/Images/Profile Images/Profile-1.png" alt="">
+                            <div class="User_Post_Box_Profile_Image-Profile_Details">
+                                
+                                <div class="User_Post_Box_Profile_Image-Profile_Details-Image_Group">
+                                    <img id="User_Post_Box_Profile_Image-Profile_Details-Image_Group-Profile_Image" src="/Images/Profile Images/Profile-1.png" alt="">
+                                    <span id="User_Post_Box_Profile_Image-Profile_Details-Image_Group-User_Name">Panda 223</span>
+
+                                    <style aria-label="User_Post_Box_Profile_Image-Profile_Details-Image_Group_Style">
+                                        .User_Post_Box_Profile_Image-Profile_Details-Image_Group {
+                                            position: absolute;
+                                            top: 20px;
+                                            display: flex;
+                                            flex-direction: column;
+                                            align-items: center;
+                                            justify-content: center;
+                                            gap: 10px;
+                                        }
+
+                                        #User_Post_Box_Profile_Image-Profile_Details-Image_Group-Profile_Image {
+                                            width: 50px;
+                                            height: 50px;
+                                            border-radius: 50%;
+                                        }
+
+                                        #User_Post_Box_Profile_Image-Profile_Details-Image_Group-User_Name {
+                                            font-size: var(--Main_Font_Size);
+                                            color: var(--Main_UI_Text_Color);
+                                        }
+
+
+                                    </style>
+                                    <script aria-label="User_Post_Box_Profile_Image-Profile_Details-Image_Group_Script">
+
+                                    </script>
+                                </div>
+
+                                <button id="User_Post_Box_Profile_Image-Profile_Details_Close_Button">[ Close ]</button>
+
+                                <style aria-label="User_Post_Box_Profile_Image-Profile_Details_Style">
+                                    .User_Post_Box_Profile_Image-Profile_Details {
+                                        position: fixed;
+                                        top: 50%;
+                                        left: 50%;
+                                        transform: translate(-50%, -50%);
+                                        width: 180px;
+                                        height: 280px;
+                                        background-color: var(--Main_UI_Background);
+                                        backdrop-filter: var(--Main_UI_Backdrop);
+                                        display: flex;
+                                        justify-content: center;
+                                        z-index: 3;
+                                        display: none;
+                                    }
+
+                                    #User_Post_Box_Profile_Image-Profile_Details_Close_Button {
+                                        position: absolute;
+                                        bottom: 10px;
+                                        border: none;
+                                        outline: none;
+                                        background: none;
+                                        color: var(--Main_UI_Text_Color);
+                                        font-size: var(--Main_Font_Size);
+                                        display: flex;
+                                        cursor: pointer;
+                                    }
+                                </style>
+                                <script aria-label="User_Post_Box_Profile_Image-Profile_Details_Script">
+
+                                    (function() {
+                                        var userImages = document.querySelectorAll('.User_Post_Box_Profile_Image-User_Image');
+                                        
+                                        userImages.forEach(function(userImage) {
+                                            userImage.addEventListener('click', function() {
+                                                var profileDetails = this.closest('.User_Post_Box_Profile_Image').querySelector('.User_Post_Box_Profile_Image-Profile_Details');
+                                                if (profileDetails) {
+                                                    profileDetails.style.display = 'flex';
+                                                }
+                                            });
+                                        });
+
+                                        var closeButtons = document.querySelectorAll('#User_Post_Box_Profile_Image-Profile_Details_Close_Button');
+                                        
+                                        closeButtons.forEach(function(closeButton) {
+                                            closeButton.addEventListener('click', function() {
+                                                var profileDetails = this.closest('.User_Post_Box_Profile_Image-Profile_Details');
+                                                if (profileDetails) {
+                                                    profileDetails.style.display = 'none';
+                                                }
+                                            });
+                                        });
+                                    })();
+    
+                                </script>
+                            </div>
+                            <style>
+                                .User_Post_Box_Profile_Image {
+                                    position: absolute;
+                                    top: 10px;
+                                    left: 10px;
+                                }
+
+                                .User_Post_Box_Profile_Image-User_Image {
+                                    width: 40px;
+                                    height: 40px;
+                                    border-radius: 50%;
+                                }
+                            </style>
+                            <script>
+
+
+                            </script>
+                        </div>
+                        <div class="User_Post_Box_Content">
+                            <style aria-label="User_Post_Box_Content_Style">
+                                .User_Post_Box_Content {
+                                    position: absolute;
+                                    top: 10px;
+                                    left: 60px;
+                                    width: calc(100% - 70px);
+                                    height: calc(100% - 50px);
+                                    border: var(--Main_Border);
+                                }
+                            </style>
+                            <script aria-label="User_Post_Box_Content_Script">
+                                
+                            </script>
+                        </div>
+                        <div class="User_Post_Box_Bottom_Buttons">
+                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Likes ]</button>
+                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Dislikes ]</button>
+                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Comments ]</button>
+                            <button id="User_Post_Box_Bottom_Buttons-Like">[ View ]</button>
+
+                            <style aria-label="User_Post_Box_Bottom_Buttons_Style">
+                                .User_Post_Box_Bottom_Buttons {
+                                    position: absolute;
+                                    bottom: 10px;
+                                    display: flex;
+                                    flex-direction: row;
+                                    gap: 10px;
+                                }
+
+                                .User_Post_Box_Bottom_Buttons > button {
+                                    border: none;
+                                    outline: none;
+                                    background: none;
+                                    color: var(--Main_UI_Text_Color);
+                                    font-size: var(--Main_Font_Size);
+                                    display: flex;
+                                    cursor: pointer;
+                                }
+                            </style>
+                            <script aria-label="User_Post_Box_Bottom_Buttons_Script">
+
+                            </script>
+                        </div>
+                        <style aria-label="User_Post_Box_Style">
+                            .User_Post_Box {
+                                position: relative;
+                                width: 100%;
+                                min-height: 200px;
+                                background-color: #00000041;
+                                display: flex;
+                                justify-content: center;
+                            }
+                        </style>
+                        <script aria-label="User_Post_Box_Script">
+
+                        </script>
+                    </div>
+                    
+
+                    <style aria-label="Post_Section_Main_Post_Container_Style">
+                        .Post_Section_Main_Post_Container {
+                            width: 100%;
+                            height: 100%;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 10px;
+                            overflow: hidden;
+                            overflow-y: scroll;
+                        }
+                    </style>
+                    <script aria-label="Post_Section_Main_Post_Container_Script">
+
+                    </script>
+                </div>
                 <style aria-label="Post_Section_Main_Post_Style">
                     .Post_Section_Main_Post {
                         position: absolute;
