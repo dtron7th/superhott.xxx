@@ -249,6 +249,7 @@
                     let lineIndex = 0;
                     let charIndex = 0;
                     let currentDisplay = [];
+                    let typingTimerId = null;
                     
                     function typeText() {
                         if (lineIndex < asciiLines.length) {
@@ -259,15 +260,36 @@
                                 currentDisplay[lineIndex] += asciiLines[lineIndex].charAt(charIndex);
                                 asciiArt.textContent = currentDisplay.join('\n');
                                 charIndex++;
-                                setTimeout(typeText, 2);
+                                typingTimerId = setTimeout(typeText, 2);
                             } else {
                                 lineIndex++;
                                 charIndex = 0;
-                                setTimeout(typeText, 30);
+                                typingTimerId = setTimeout(typeText, 30);
                             }
+                        } else {
+                            typingTimerId = null;
+                            window.__asciiLogoAnimationDoneAt = Date.now();
                         }
                     }
-                    setTimeout(typeText, 50);
+
+                    function restartAsciiLogoTextAnimation(startDelayMs) {
+                        if (typingTimerId) {
+                            clearTimeout(typingTimerId);
+                            typingTimerId = null;
+                        }
+                        lineIndex = 0;
+                        charIndex = 0;
+                        currentDisplay = [];
+                        asciiArt.textContent = '';
+                        window.__asciiLogoAnimationDoneAt = 0;
+                        typingTimerId = setTimeout(typeText, Number(startDelayMs) || 0);
+                    }
+
+                    window.restartAsciiLogoTextAnimation = function () {
+                        restartAsciiLogoTextAnimation(0);
+                    };
+
+                    restartAsciiLogoTextAnimation(50);
 
                     function resizeCanvas() {
                         canvas.width = window.innerWidth;
@@ -364,9 +386,247 @@
                 
             </script>
         </div>
+        <div class="Warning_Window">
+
+            <p id="Warning_Title-Text">Warning!</p>
+            <p id="Warning_Window_Buttons-Text">This website may contain explicit sexual content for adults 18+,<br><br>"We're not exacally a porn site...it's just that lesbians are extreamly beautful when it comes to love."</p>
+
+            <div class="Warning_Window_Buttons">
+                
+                <button id="Warning_Window_Buttons-Proceed">[ Proceed ]</button>
+                <button id="Warning_Window_Buttons-Exit">[ Exit ]</button>
+                <style aria-label="Warning_Window_Buttons_Style">
+
+                    .Warning_Window_Buttons {
+                        position: absolute;
+                        bottom: 20px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .Warning_Window_Buttons > button {
+                        border: none;
+                        outline: none;
+                        background: none;
+                        color: var(--Main_UI_Text_Color);
+                        font-size: var(--Main_Font_Size);
+                        display: flex;
+                        cursor: pointer;
+                    }
+
+                    .Warning_Window_Buttons > button {
+                        border: none;
+                        outline: none;
+                        background: none;
+                        color: var(--Main_UI_Text_Color);
+                        font-size: var(--Main_Font_Size);
+                        display: flex;
+                        cursor: pointer;
+                    }
+                    
+                </style>
+                <script aria-label="Warning_Window_Buttons_Script">
+                    (function () {
+                        var warningWindow = document.querySelector('.Warning_Window');
+                        var proceedButton = document.getElementById('Warning_Window_Buttons-Proceed');
+                        var exitButton = document.getElementById('Warning_Window_Buttons-Exit');
+                        var proceedLogoDelayMs = 1000;
+                        if (!warningWindow || !proceedButton) {
+                            return;
+                        }
+
+                        proceedButton.addEventListener('click', function () {
+                            window.__warningLogoDelayUntil = Date.now() + proceedLogoDelayMs;
+                            warningWindow.style.display = 'none';
+                        });
+
+                        if (exitButton) {
+                            exitButton.addEventListener('click', function () {
+                                window.location.href = 'https://www.google.com/?gws_rd=ssl';
+                            });
+                        }
+                    })();
+
+                </script>
+            </div>
+            <style aria-label="Warning_Window_Style">
+                .Warning_Window {
+                    position: absolute;
+                    width: 300px;
+                    height: 280px;
+                    background-color: var(--Main_UI_Background);
+                    border: var(--Main_Border);
+                    backdrop-filter: var(--Main_UI_Backdrop);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                #Warning_Title-Text{
+                    position: absolute;
+                    top: 40px;
+                    color: var(--Main_UI_Text_Color);
+                    font-size: var(--Main_Font_Size);
+                    display: flex;
+                    text-align: center;
+                }
+
+                #Warning_Window_Buttons-Text {
+                    width: 240px;
+                    color: var(--Main_UI_Text_Color);
+                    font-size: var(--Main_Font_Size);
+                    display: flex;
+                    text-align: center;
+                    cursor: pointer;
+
+                }
+            </style>
+            <script aria-label="Warning_Window_Script">
+                (function () {
+                    var warningWindow = document.querySelector('.Warning_Window');
+                    var asciiLogo = document.querySelector('.Ascii_Logo');
+                    var scannerWindow = null;
+                    var counters = null;
+                    var logoDelayTimer = null;
+                    var uiDelayTimer = null;
+                    if (!warningWindow || !asciiLogo) {
+                        return;
+                    }
+
+                    function getScannerWindow() {
+                        if (!scannerWindow) {
+                            scannerWindow = document.querySelector('.Scanner_Window');
+                        }
+                        return scannerWindow;
+                    }
+
+                    function getCounters() {
+                        if (!counters) {
+                            counters = document.querySelector('.Counters');
+                        }
+                        return counters;
+                    }
+
+                    function setLogoTextVisible(asciiLogoText, isVisible) {
+                        if (!asciiLogoText) {
+                            return;
+                        }
+                        var wasVisible = asciiLogoText.style.visibility !== 'hidden';
+                        asciiLogoText.style.visibility = isVisible ? 'visible' : 'hidden';
+                        asciiLogoText.style.opacity = isVisible ? '1' : '0';
+                        if (isVisible && !wasVisible && typeof window.restartAsciiLogoTextAnimation === 'function') {
+                            window.restartAsciiLogoTextAnimation();
+                        }
+                    }
+
+                    function syncAsciiWithWarning() {
+                        var now = Date.now();
+                        var warningVisible = window.getComputedStyle(warningWindow).display !== 'none';
+                        var asciiLogoText = document.getElementById('Ascii_Logo_Text');
+                        if (asciiLogoText) {
+                            if (warningVisible) {
+                                if (logoDelayTimer) {
+                                    clearTimeout(logoDelayTimer);
+                                    logoDelayTimer = null;
+                                }
+                                setLogoTextVisible(asciiLogoText, false);
+                            } else {
+                                var delayUntil = Number(window.__warningLogoDelayUntil || 0);
+                                var remainingDelayMs = delayUntil - now;
+
+                                if (remainingDelayMs > 0) {
+                                    setLogoTextVisible(asciiLogoText, false);
+                                    if (!logoDelayTimer) {
+                                        logoDelayTimer = setTimeout(function () {
+                                            logoDelayTimer = null;
+                                            syncAsciiWithWarning();
+                                        }, remainingDelayMs);
+                                    }
+                                } else {
+                                    setLogoTextVisible(asciiLogoText, true);
+                                }
+                            }
+                        }
+
+                        if (warningVisible) {
+                            var scannerWindowEl = getScannerWindow();
+                            var countersEl = getCounters();
+                            if (uiDelayTimer) {
+                                clearTimeout(uiDelayTimer);
+                                uiDelayTimer = null;
+                            }
+                            if (scannerWindowEl) {
+                                scannerWindowEl.style.display = 'none';
+                            }
+                            if (countersEl) {
+                                countersEl.style.display = 'none';
+                            }
+                        } else {
+                            var scannerWindowEl = getScannerWindow();
+                            var countersEl = getCounters();
+                            var logoAnimationDoneAt = Number(window.__asciiLogoAnimationDoneAt || 0);
+                            var uiDelayUntil = logoAnimationDoneAt > 0 ? (logoAnimationDoneAt + 1000) : 0;
+                            var remainingUiDelayMs = uiDelayUntil - now;
+                            if (logoAnimationDoneAt <= 0) {
+                                if (scannerWindowEl) {
+                                    scannerWindowEl.style.display = 'none';
+                                }
+                                if (countersEl) {
+                                    countersEl.style.display = 'none';
+                                }
+                                if (!uiDelayTimer) {
+                                    uiDelayTimer = setTimeout(function () {
+                                        uiDelayTimer = null;
+                                        syncAsciiWithWarning();
+                                    }, 120);
+                                }
+                                asciiLogo.style.display = '';
+                                return;
+                            }
+                            if (remainingUiDelayMs > 0) {
+                                if (scannerWindowEl) {
+                                    scannerWindowEl.style.display = 'none';
+                                }
+                                if (countersEl) {
+                                    countersEl.style.display = 'none';
+                                }
+                                if (!uiDelayTimer) {
+                                    uiDelayTimer = setTimeout(function () {
+                                        uiDelayTimer = null;
+                                        syncAsciiWithWarning();
+                                    }, remainingUiDelayMs);
+                                }
+                            } else {
+                                if (scannerWindowEl) {
+                                    scannerWindowEl.style.display = 'flex';
+                                }
+                                if (countersEl) {
+                                    countersEl.style.display = 'flex';
+                                }
+                            }
+                        }
+
+                        asciiLogo.style.display = '';
+                    }
+
+                    syncAsciiWithWarning();
+
+                    var warningObserver = new MutationObserver(syncAsciiWithWarning);
+                    warningObserver.observe(warningWindow, {
+                        attributes: true,
+                        attributeFilter: ['style', 'class']
+                    });
+                })();
+
+            </script>
+        </div>
         <!-- --Book_Mark - (Scanner Section)--------------------- -->
         <div class="Scanner">
             <!-- --Book_Mark - (Scanner Window)--------------------- -->
+            
+
             <div class="Scanner_Window">
                 <p id="Opening_Window_Text">Welcome to My lesbian story.com, join where the best stories happen (Worth living for)! Just scan your state ID to create an account</p>
                 <button id="Scan_ID_Button">[ Scan State ID ]</button>
@@ -382,6 +642,7 @@
                         display: flex;
                         justify-content: center;
                         align-items: center;
+                        display: none;
                     }
                     
                     #Opening_Window_Text {
@@ -432,26 +693,45 @@
         </div>
 
         <div class="Counters">
-            <span id="Counters_User_Count">0 Users</span>
-            <span id="Counters_Profit_Count">Networth $0.00</span>
+            <div class="Counters_Group">
+                <span id="Counters_User_Count">0 Users</span>
+                <span id="Counters_Profit_Count">Networth $0.00</span>
+            </div>
+            
+            <p id="Counters_Paragraph">Join a brilliant new way of connecting the world together with just 25 cents a month, I dont need to be a millionare, I just need to make a little profet to fund my other flag ship projects (the milionare projects that i'm working on). Crazy serious, just join with 25 cents a month with unlimited messaging and posting,</p>
+            
             <style aria-label="Counters_Style">
                 .Counters {
                     position: absolute;
-                    top: 580px;
-                    width: calc(100% - 40px);
-                    height: 50px;
+                    bottom: 20px;
+                    width: 300px;
+                    height: calc(100% - 600px);
                     border: var(--Main_Border);
                     background-color: var(--Main_UI_Background);
                     backdrop-filter: var(--Main_UI_Backdrop);
                     display: flex;
                     justify-content: center;
                     align-items: center;
+                    display: none;
                 }
 
-                .Counters > span {
-                    margin: 0 10px;
+                .Counters > .Counters_Group {
+                    position: absolute;
+                    top: 40px;
+                    display: flex;
+                    flex-direction: row;
+                    gap: 20px;
                     font-size: var(--Main_Font_Size);
                     color: var(--Main_UI_Text_Color);
+                }
+                
+                .Counters > #Counters_Paragraph {
+                    position: absolute;
+                    bottom: 40px;
+                    width: 240px;
+                    font-size: var(--Main_Font_Size);
+                    color: var(--Main_UI_Text_Color);
+                    text-align: center;
                 }
             </style>
             <script aria-label="Counters_Script">
