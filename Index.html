@@ -992,9 +992,10 @@
                                 preview.style.display = 'none';
                                 html5QrCode = new window.Html5Qrcode(scannerHost.id, { verbose: false });
                                 await html5QrCode.start(
-                                    { facingMode: 'environment' },
+                                    { facingMode: { ideal: 'environment' } },
                                     {
                                         fps: 14,
+                                        focusMode: 'continuous',
                                         qrbox: function (viewfinderWidth, viewfinderHeight) {
                                             return {
                                                 width: Math.floor(Math.min(viewfinderWidth * 0.95, 320)),
@@ -1020,10 +1021,29 @@
                                         video: {
                                             facingMode: { ideal: 'environment' },
                                             width: { ideal: 1920 },
-                                            height: { ideal: 1080 }
+                                            height: { ideal: 1080 },
+                                            focusMode: { ideal: 'continuous' }
                                         },
                                         audio: false
                                     });
+
+                                    // Apply advanced autofocus constraints on the live track
+                                    try {
+                                        var videoTrack = stream.getVideoTracks()[0];
+                                        if (videoTrack) {
+                                            var capabilities = typeof videoTrack.getCapabilities === 'function' ? videoTrack.getCapabilities() : {};
+                                            var advancedConstraints = {};
+                                            if (capabilities.focusMode && capabilities.focusMode.indexOf('continuous') !== -1) {
+                                                advancedConstraints.focusMode = 'continuous';
+                                            }
+                                            if (capabilities.focusDistance) {
+                                                advancedConstraints.focusDistance = capabilities.focusDistance.min;
+                                            }
+                                            if (Object.keys(advancedConstraints).length > 0) {
+                                                await videoTrack.applyConstraints({ advanced: [advancedConstraints] });
+                                            }
+                                        }
+                                    } catch (focusErr) { }
                                     preview.style.display = 'block';
                                     preview.srcObject = stream;
                                     await preview.play();
@@ -2180,8 +2200,6 @@
                     align-items: center;
                     overflow: hidden;
                     z-index: 0;
-
-
                 }
 
                 .Page_1_Wallpaper > img {
@@ -2414,8 +2432,6 @@
                                     }
                                 }
                             });
-
-                            
 
                             
 
@@ -2709,6 +2725,71 @@
         <div class="Page_1_Post_Section">
             <button id="Post_Section_Create_Post_Button">[ Create Post ]</button>
 
+            <div class="Post_Section_Create_Post_Build_Container">
+                <div class="Build_Post_Section">
+                    <input id="Post_Text_Area" type="text">
+
+                    <div class="Build_Post_Section-Bottom_Buttons">
+                        <button id="">the</button>
+
+                        <style aria-label="Build_Post_Section_Bottom_Buttons_Style">
+                            .Build_Post_Section-Bottom_Buttons {
+                                position: absolute;
+                                bottom: 0px;
+                                width: 100%;
+                                height: 30px;
+                                background-color: #66ffaa;
+                            }
+                        </style>
+                        <script aria-label="Build_Post_Section_Bottom_Buttons_Script">
+
+                        </script>
+                    </div>
+                    <style aria-label="Build_Post_Section_Style">
+                        .Build_Post_Section{
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 300px;
+                            height: 400px;
+                            background-color: var(--Main_UI_Background);
+                            border: var(--Main_Border);
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        }
+                        
+                        #Post_Text_Area {
+                            position: absolute;
+                            top: 10px;
+                            width: calc(100% - 20px);
+                            height: calc(100% - 60px);
+                            display: none;
+                        }
+                    </style>
+                    <script aria-label="Build_Post_Section_Script">
+
+                    </script>
+                </div>
+
+                <style aria-label="Post_Section_Create_Post_Build_Container_Style">
+                    .Post_Section_Create_Post_Build_Container{
+                        position: fixed;
+                        top: 0px;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(68, 68, 68, 0.5);
+                        backdrop-filter: blur(10px);
+                        z-index: 1;
+                    }
+                </style>
+                <script aria-label="Post_Section_Create_Post_Build_Container_Script">
+
+                </script>
+            </div>
+
+
             <div class="Post_Section_Main_Post">
                 <div class="Post_Section_Main_Post_Container">
                     <div class="User_Post_Box">
@@ -2833,7 +2914,7 @@
                                     left: 60px;
                                     width: calc(100% - 70px);
                                     height: calc(100% - 50px);
-                                    border: var(--Main_Border);
+                                    background-color: #44ccff;
                                 }
                             </style>
                             <script aria-label="User_Post_Box_Content_Script">
@@ -2841,17 +2922,20 @@
                             </script>
                         </div>
                         <div class="User_Post_Box_Bottom_Buttons">
-                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Likes ]</button>
-                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Dislikes ]</button>
-                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Comments ]</button>
+                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Like ]</button>
+                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Comment ]</button>
                             <button id="User_Post_Box_Bottom_Buttons-Like">[ View ]</button>
+                            <button id="User_Post_Box_Bottom_Buttons-Like">[ Actions ]</button>
+                            
 
                             <style aria-label="User_Post_Box_Bottom_Buttons_Style">
                                 .User_Post_Box_Bottom_Buttons {
                                     position: absolute;
+                                    width: calc(100% - 40px);
                                     bottom: 10px;
                                     display: flex;
                                     flex-direction: row;
+                                    justify-content: center;
                                     gap: 10px;
                                 }
 
@@ -2875,7 +2959,7 @@
                                 width: 100%;
                                 min-height: 200px;
                                 background-color: #00000041;
-                                display: flex;
+                                display: none;
                                 justify-content: center;
                             }
                         </style>
@@ -2917,6 +3001,7 @@
 
             <style aria-label="Page_1_Post_Section_Style">
                 .Page_1_Post_Section {
+
                     position: absolute;
                     bottom: 10px;
                     width: calc(100% - 20px);
@@ -2940,6 +3025,46 @@
                 }
             </style>
             <Script aria-label="Page_1_Post_Section_Script">
+                (function () {
+                    var createPostButton = document.getElementById('Post_Section_Create_Post_Button');
+                    var postContainer = document.querySelector('.Post_Section_Main_Post_Container');
+                    if (!createPostButton || !postContainer) {
+                        return;
+                    }
+
+                    var postTemplate = postContainer.querySelector('.User_Post_Box');
+                    if (!postTemplate) {
+                        return;
+                    }
+
+                    function createUserPostBox() {
+                        var newPostBox = postTemplate.cloneNode(true);
+                        newPostBox.style.display = 'flex';
+                        postContainer.appendChild(newPostBox);
+                    }
+
+                    createPostButton.addEventListener('click', createUserPostBox);
+
+                    postContainer.addEventListener('click', function (event) {
+                        var userImage = event.target.closest('.User_Post_Box_Profile_Image-User_Image');
+                        if (userImage) {
+                            var postBox = userImage.closest('.User_Post_Box');
+                            var profileDetails = postBox ? postBox.querySelector('.User_Post_Box_Profile_Image-Profile_Details') : null;
+                            if (profileDetails) {
+                                profileDetails.style.display = 'flex';
+                            }
+                            return;
+                        }
+
+                        var closeButton = event.target.closest('#User_Post_Box_Profile_Image-Profile_Details_Close_Button');
+                        if (closeButton) {
+                            var detailsWindow = closeButton.closest('.User_Post_Box_Profile_Image-Profile_Details');
+                            if (detailsWindow) {
+                                detailsWindow.style.display = 'none';
+                            }
+                        }
+                    });
+                })();
 
             </Script>
         </div>
@@ -2954,7 +3079,7 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
-                display: none;
+                
             }
         </style>
         <script aria-label="Page_1_Main_Script">
