@@ -250,22 +250,38 @@
                     let charIndex = 0;
                     let currentDisplay = [];
                     let typingTimerId = null;
+                    const logoAnimationDurationMs = 1000;
+                    const typeTickMs = 16;
+                    const totalAnimationChars = asciiLines.reduce(function (count, line) {
+                        return count + line.length;
+                    }, 0);
+                    const totalAnimationTicks = Math.max(1, Math.ceil(logoAnimationDurationMs / typeTickMs));
+                    const charsPerTick = Math.max(1, Math.ceil(totalAnimationChars / totalAnimationTicks));
                     
                     function typeText() {
                         if (lineIndex < asciiLines.length) {
-                            if (charIndex === 0) {
-                                currentDisplay.push('');
+                            var remainingCharsThisTick = charsPerTick;
+                            while (remainingCharsThisTick > 0 && lineIndex < asciiLines.length) {
+                                if (currentDisplay.length === lineIndex) {
+                                    currentDisplay.push('');
+                                }
+
+                                var line = asciiLines[lineIndex];
+                                var charsLeftInLine = line.length - charIndex;
+                                var charsToTake = Math.min(remainingCharsThisTick, charsLeftInLine);
+
+                                currentDisplay[lineIndex] += line.slice(charIndex, charIndex + charsToTake);
+                                charIndex += charsToTake;
+                                remainingCharsThisTick -= charsToTake;
+
+                                if (charIndex >= line.length) {
+                                    lineIndex++;
+                                    charIndex = 0;
+                                }
                             }
-                            if (charIndex < asciiLines[lineIndex].length) {
-                                currentDisplay[lineIndex] += asciiLines[lineIndex].charAt(charIndex);
-                                asciiArt.textContent = currentDisplay.join('\n');
-                                charIndex++;
-                                typingTimerId = setTimeout(typeText, 2);
-                            } else {
-                                lineIndex++;
-                                charIndex = 0;
-                                typingTimerId = setTimeout(typeText, 30);
-                            }
+
+                            asciiArt.textContent = currentDisplay.join('\n');
+                            typingTimerId = setTimeout(typeText, typeTickMs);
                         } else {
                             typingTimerId = null;
                             window.__asciiLogoAnimationDoneAt = Date.now();
@@ -438,6 +454,7 @@
                         }
 
                         proceedButton.addEventListener('click', function () {
+                            window.__asciiLogoAnimationDoneAt = 0;
                             window.__warningLogoDelayUntil = Date.now() + proceedLogoDelayMs;
                             warningWindow.style.display = 'none';
                         });
@@ -553,6 +570,7 @@
                         if (warningVisible) {
                             var scannerWindowEl = getScannerWindow();
                             var countersEl = getCounters();
+                            window.__asciiLogoAnimationDoneAt = 0;
                             if (uiDelayTimer) {
                                 clearTimeout(uiDelayTimer);
                                 uiDelayTimer = null;
