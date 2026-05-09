@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Coradon World</title>
 
     <script>
         // Set this to your external API URL if you do not use Netlify redirects.
@@ -18,14 +18,21 @@
             --Main_UI_Text_Color: #ffffff;
             --Main_UI_Backdrop: blur(20px);
             --Main_UI_Background: #0000003d;
+            --Main_UI_Background-Black_Screen: #000000;
             --Main_Font_Size: 12px;
-            --Main_Border: 1px solid rgba(94, 94, 94, 0.274);
+            --Main_Border: 1px solid rgba(187, 187, 187, 0.753);
+            --Ascii_Rain_RGB: rgb(30, 255, 0);
+            --Ascii_Logo_Color: #1eff00;
+            --Ascii_Logo_Glow: #08e700;
             
             --UI_Background_Hover: #d6d6d6;
             --UI_Text_Color_Hover: #000000;
 
             --Window_Bottom_Buttons_Background:rgb(0, 0, 0);
             --Window_Bottom_Buttons_Text_Color: #ffffff;
+
+            --DOS_Blue_UI_Background: #00165e;
+            --DOS_Blue_Text_Color: #ffbb00;
         }
     </style>
 
@@ -66,6 +73,11 @@
         body {
             width: 100dvw;
             height: 100dvh;
+        }
+
+        [class$="_Window"],
+        [class$="-Popup_Window"] {
+            border: var(--Main_Border);
         }
     </style>
 
@@ -203,7 +215,7 @@
                 }
 
                 @keyframes Ascii_Rainbow_Fade {
-                    0%   { color: #ff6688; text-shadow: 0 0 8px rgba(255,102,136,0.4); }
+                    0%   { color: #d44866; text-shadow: 0 0 8px rgba(255,102,136,0.4); }
                     14%  { color: #ffaa44; text-shadow: 0 0 8px rgba(255,170,68,0.4); }
                     28%  { color: #ffee55; text-shadow: 0 0 8px rgba(255,238,85,0.4); }
                     42%  { color: #66ffaa; text-shadow: 0 0 8px rgba(102,255,170,0.4); }
@@ -228,29 +240,29 @@
 
                     const asciiArt = document.createElement('pre');
                     asciiArt.id = 'Ascii_Logo_Text';
-                    asciiArt.style.cssText = 'font-family:"Courier New",monospace;font-size:6px;line-height:1.1;color:#ff4477;text-shadow:0 0 8px rgba(255,68,119,0.6);white-space:pre;text-align:center;letter-spacing:0;margin:0;padding:10px;';
+                    asciiArt.style.cssText = 'font-family:"Courier New",monospace;font-size:6px;line-height:1.1;color:var(--Ascii_Logo_Color);text-shadow:0 0 8px color-mix(in srgb, var(--Ascii_Logo_Glow) 60%, transparent);white-space:pre;text-align:center;letter-spacing:0;margin:0;padding:10px;';
                     logoContainer.appendChild(asciiArt);
 
                     const asciiLines = [
-                        '███╗   ███╗██╗   ██╗    ██╗     ███████╗███████╗██████╗ ██╗ █████╗ ███╗   ██╗',
-                        '████╗ ████║╚██╗ ██╔╝    ██║     ██╔════╝██╔════╝██╔══██╗██║██╔══██╗████╗  ██║',
-                        '██╔████╔██║ ╚████╔╝     ██║     █████╗  ███████╗██████╔╝██║███████║██╔██╗ ██║',
-                        '██║╚██╔╝██║  ╚██╔╝      ██║     ██╔══╝  ╚════██║██╔══██╗██║██╔══██║██║╚██╗██║',
-                        '██║ ╚═╝ ██║   ██║       ███████╗███████╗███████║██████╔╝██║██║  ██║██║ ╚████║',
-                        '╚═╝     ╚═╝   ╚═╝       ╚══════╝╚══════╝╚══════╝╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝',
-                        '                ███████╗████████╗ ██████╗ ██████╗ ██╗   ██╗                  ',
-                        '                ██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗╚██╗ ██╔╝                  ',
-                        '                ███████╗   ██║   ██║   ██║██████╔╝ ╚████╔╝                   ',
-                        '                ╚════██║   ██║   ██║   ██║██╔══██╗  ╚██╔╝                    ',
-                        '                ███████║   ██║   ╚██████╔╝██║  ██║   ██║                     ',
-                        '                ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝                     '
+                        ' ██████╗ ██████╗ ██████╗  █████╗ ██████╗  ██████╗ ███╗   ██╗',
+                        '██╔════╝██╔═══██╗██╔══██╗██╔══██╗██╔══██╗██╔═══██╗████╗  ██║',
+                        '██║     ██║   ██║██████╔╝███████║██║  ██║██║   ██║██╔██╗ ██║',
+                        '██║     ██║   ██║██╔══██╗██╔══██║██║  ██║██║   ██║██║╚██╗██║',
+                        '╚██████╗╚██████╔╝██║  ██║██║  ██║██████╔╝╚██████╔╝██║ ╚████║',
+                        ' ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝  ╚═══╝',
+                        '        ██╗    ██╗ ██████╗ ██████╗ ██╗     ██████╗         ',
+                        '        ██║    ██║██╔═══██╗██╔══██╗██║     ██╔══██╗        ',
+                        '        ██║ █╗ ██║██║   ██║██████╔╝██║     ██║  ██║        ',
+                        '        ██║███╗██║██║   ██║██╔══██╗██║     ██║  ██║        ',
+                        '        ╚███╔███╔╝╚██████╔╝██║  ██║███████╗██████╔╝        ',
+                        '         ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═════╝         '
                     ];
 
                     let lineIndex = 0;
                     let charIndex = 0;
                     let currentDisplay = [];
                     let typingTimerId = null;
-                    const logoAnimationDurationMs = 1000;
+                    const logoAnimationDurationMs = 0.5;
                     const typeTickMs = 16;
                     const totalAnimationChars = asciiLines.reduce(function (count, line) {
                         return count + line.length;
@@ -316,25 +328,56 @@
                     const fontSize = 12;
                     const targetFps = 18;
                     const frameDuration = 1000 / targetFps;
-                    const chars = 'あぁかさたなはまやゃらわがざだばぱいぃきしちにひみりゐぎじぢびぴABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!?<>[]{}|~^';
+                    const chars = '01';
+                    function normalizeRainRgb(value) {
+                        var color = String(value || '').trim();
+                        if (!color) {
+                            return '255,68,119';
+                        }
+
+                        if (/^\d+\s*,\s*\d+\s*,\s*\d+$/.test(color)) {
+                            return color.replace(/\s+/g, '');
+                        }
+
+                        var rgbMatch = color.match(/^rgba?\(([^)]+)\)$/i);
+                        if (rgbMatch && rgbMatch[1]) {
+                            var rgbParts = rgbMatch[1].split(',').slice(0, 3).map(function (part) {
+                                return part.trim();
+                            });
+                            if (rgbParts.length === 3) {
+                                return rgbParts.join(',');
+                            }
+                        }
+
+                        return '255,68,119';
+                    }
+
+                    function getRainRgb() {
+                        var rootStyles = window.getComputedStyle(document.documentElement);
+                        var rgb = String(rootStyles.getPropertyValue('--Ascii_Rain_RGB') || '').trim();
+                        return normalizeRainRgb(rgb);
+                    }
+
+                    let rainRgb = getRainRgb();
+                    window.setAsciiRainColor = function (rgbValue) {
+                        if (typeof rgbValue !== 'string' || !rgbValue.trim()) {
+                            return;
+                        }
+                        rainRgb = normalizeRainRgb(rgbValue);
+                        document.documentElement.style.setProperty('--Ascii_Rain_RGB', rainRgb);
+                    };
                     
                     let columns = Math.floor(canvas.width / fontSize);
                     let drops = [];
-                    let columnHues = [];
-                    let nextColorChangeTime = [];
                     let dropSpeeds = [];
                     
                     function initDrops() {
                         resizeCanvas();
                         columns = Math.floor(canvas.width / fontSize);
                         drops = [];
-                        columnHues = [];
-                        nextColorChangeTime = [];
                         dropSpeeds = [];
                         for (let i = 0; i < columns; i++) {
                             drops[i] = Math.random() * -50;
-                            columnHues[i] = Math.random() * 360;
-                            nextColorChangeTime[i] = Date.now() + Math.random() * 3000 + 500;
                             dropSpeeds[i] = Math.random() * 0.5 + 0.5;
                         }
                     }
@@ -348,24 +391,15 @@
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         
                         ctx.font = fontSize + 'px "Courier New", monospace';
-                        
-                        const now = Date.now();
 
                         for (let i = 0; i < drops.length; i++) {
-                            if (now >= nextColorChangeTime[i]) {
-                                columnHues[i] = Math.random() * 360;
-                                nextColorChangeTime[i] = now + Math.random() * 3000 + 500;
-                            }
-                            
                             const char = chars[Math.floor(Math.random() * chars.length)];
                             const x = i * fontSize;
                             const y = drops[i] * fontSize;
-                            
-                            const hue = columnHues[i];
-                            
-                            ctx.shadowColor = `hsla(${hue}, 100%, 70%, 0.8)`;
+
+                            ctx.shadowColor = `rgba(${rainRgb}, 0.8)`;
                             ctx.shadowBlur = 0;
-                            ctx.fillStyle = `hsla(${hue}, 100%, 70%, 1)`;
+                            ctx.fillStyle = `rgba(${rainRgb}, 1)`;
                             
                             ctx.fillText(char, x, y);
                             
@@ -374,7 +408,7 @@
                                 const trailY = (drops[i] - t) * fontSize;
                                 const trailChar = chars[Math.floor(Math.random() * chars.length)];
                                 const opacity = 1 - (t / (trailLength + 1));
-                                ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${opacity * 0.6})`;
+                                ctx.fillStyle = `rgba(${rainRgb}, ${opacity * 0.6})`;
                                 ctx.fillText(trailChar, x, trailY);
                             }
                             
@@ -405,7 +439,7 @@
         <div class="Warning_Window">
 
             <p id="Warning_Title-Text">Warning!</p>
-            <p id="Warning_Window_Buttons-Text">This website may contain explicit sexual content for adults 18+,<br><br>"We're not exacally a porn site...it's just that lesbians are extreamly beautful when it comes to love."</p>
+            <p id="Warning_Window_Buttons-Text">This website may contain explicit content for adults 18+,<br><br>Welcome to Coradon Dating. Meet anyone from anywere, travel and do stuff as well."</p>
 
             <div class="Warning_Window_Buttons">
                 
@@ -646,7 +680,7 @@
             
 
             <div class="Scanner_Window">
-                <p id="Opening_Window_Text">Welcome to My lesbian story.com, join where the best stories happen (Worth living for)! Just scan your state ID to create an account</p>
+                <p id="Opening_Window_Text">Welcome to Coradon World, join where clubs are made world wide (worth the travel)! Just scan your state ID to create an account</p>
                 <button id="Scan_ID_Button">[ Scan State ID ]</button>
 
                 <!-- --Book_Mark - (Opening Window Text Styles)--------------------- -->
@@ -932,7 +966,7 @@
                                 if (!terminal || !scan || !scan.parsed) { return; }
                                 const parsed = scan.parsed;
                                 const lines = [
-                                    'My Lesbian Story',
+                                    'Coradon World',
                                     'User:\\> ',
                                     'Scan successful:',
                                     'Full Name: ' + (parsed.fullName || '-'),
@@ -1165,7 +1199,7 @@
                 <!-- --Book_Mark - (Log_Window Close Button)--------------------- -->
                 <button id="Log_Window_Close">[ Close ]</button>
                 <div class="Log_Terminal">
-                    <p id="Terminal_Text">My Lesbian Story</p>
+                    <p id="Terminal_Text">Coradon World</p>
 
                     <style aria-label="Log_Window_Terminal_Style">
 
@@ -1518,7 +1552,7 @@
                             }
 
                             function renderTerminal(lines) {
-                                var content = ['My Lesbian Story', ''].concat(lines || []);
+                                var content = ['Coradon World', ''].concat(lines || []);
                                 terminal.innerHTML = content.map(renderLine).join('<br>');
                                 terminal.scrollTop = terminal.scrollHeight;
                             }
@@ -2196,6 +2230,7 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
+                display: none;
             }
         </style>
     </div>
@@ -2744,11 +2779,1126 @@
             <button id="Post_Section_Create_Post_Button">[ Create Post ]</button>
 
             <div class="Post_Section_Create_Post_Build_Container">
+                <div class="Post_Build_Container-Menu">
+                    <button id="Post_Build_Container-Upload">[ Upload ]</button>
+                    <button id="Post_Build_Container-Tag">[ Tag ]</button>
+                    <button id="Post_Build_Container-Add">[ Add ]</button>
+                    <button id="Post_Build_Container-Get">[ Other ]</button>
+
+                    <!-- --Book_Mark - (Upload_Wimdow)--------------------- -->
+
+                    <div class="Post_Build_Container-Upload_Window">
+                        <div class="Upload_Images_Container">
+                            <style aria-label="Upload_Images_Container_Style">
+                                .Upload_Images_Container {
+                                    position: absolute;
+                                    top: 10px;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    width: calc(100% - 20px);
+                                    height: calc(100% - 50px);
+                                    overflow: hidden;
+                                    touch-action: pan-y;
+                                }
+
+                                .Upload_Images_Container > .Upload_Images_Empty {
+                                    font-size: var(--Main_Font_Size);
+                                    color: var(--Main_UI_Text_Color);
+                                    opacity: 0.75;
+                                    text-align: center;
+                                }
+
+                                .Upload_Images_Container > .Upload_Images_Indicator {
+                                    position: absolute;
+                                    bottom: 6px;
+                                    right: 8px;
+                                    font-size: 10px;
+                                    color: var(--Main_UI_Text_Color);
+                                    background: rgba(0, 0, 0, 0.45);
+                                    padding: 2px 6px;
+                                }
+                            </style>
+                            <script aria-label="Upload_Images_Container_Script">
+                                
+                            </script>
+                        </div>
+
+                        <div class="Post_Build_Container-Upload_Window-Buttons">
+                            <button id="Post_Build_Container-Upload_Window-Upload_Images_Button">[ Upload ]</button>
+                            <button id="Post_Build_Container-Upload_Window-Add_Images_Button">[ Add ]</button>
+                            <button id="Post_Build_Container-Upload_Window-Close_Button">[ Close ]</button>
+
+                            <style aria-label="Post_Build_Container-Upload_Window-Buttons_Style">
+                                #Post_Build_Container-Upload_Window-Upload_Images_Button {
+                                    border: none;
+                                    outline: none;
+                                    background: none;
+                                    color: var(--Main_UI_Text_Color);
+                                    font-size: var(--Main_Font_Size);
+                                    display: flex;
+                                    cursor: pointer;
+                                }
+
+                                #Post_Build_Container-Upload_Window-Add_Images_Button {
+                                    border: none;
+                                    outline: none;
+                                    background: none;
+                                    color: var(--Main_UI_Text_Color);
+                                    font-size: var(--Main_Font_Size);
+                                    display: flex;
+                                    cursor: pointer;
+                                }
+
+                                #Post_Build_Container-Upload_Window-Close_Button {
+                                    border: none;
+                                    outline: none;
+                                    background: none;
+                                    color: var(--Main_UI_Text_Color);
+                                    font-size: var(--Main_Font_Size);
+                                    display: flex;
+                                    cursor: pointer;
+                                }
+                            </style>
+                            <script aria-label="Post_Build_Container-Upload_Window-Buttons_Script">
+                                (function () {
+                                    var uploadImagesButton = document.getElementById('Post_Build_Container-Upload_Window-Upload_Images_Button');
+                                    var addImagesButton = document.getElementById('Post_Build_Container-Upload_Window-Add_Images_Button');
+                                    var closeButton = document.getElementById('Post_Build_Container-Upload_Window-Close_Button');
+                                    var uploadWindow = document.querySelector('.Post_Build_Container-Upload_Window');
+                                    if (!uploadImagesButton || !addImagesButton || !closeButton || !uploadWindow) {
+                                        return;
+                                    }
+
+                                    var fileInput = document.getElementById('Post_Build_Container-Upload_Window-Hidden_File_Input');
+                                    if (!fileInput) {
+                                        fileInput = document.createElement('input');
+                                        fileInput.id = 'Post_Build_Container-Upload_Window-Hidden_File_Input';
+                                        fileInput.type = 'file';
+                                        fileInput.accept = 'image/*';
+                                        fileInput.multiple = true;
+                                        fileInput.style.display = 'none';
+                                        document.body.appendChild(fileInput);
+                                    }
+
+                                    function bindUploadHandlers() {
+                                        var ctx = window.__postBuildUploadWindowCtx;
+                                        if (!ctx) {
+                                            setTimeout(bindUploadHandlers, 30);
+                                            return;
+                                        }
+
+                                        if (uploadImagesButton.dataset.boundUploadButton === 'true') {
+                                            return;
+                                        }
+                                        uploadImagesButton.dataset.boundUploadButton = 'true';
+
+                                        uploadImagesButton.addEventListener('click', function (event) {
+                                            event.stopPropagation();
+                                            ctx.suspendOutsideClose(1200);
+                                            fileInput.value = '';
+                                            fileInput.click();
+                                        });
+
+                                        fileInput.addEventListener('change', function () {
+                                            ctx.readFilesAsDataUrls(fileInput.files).then(function (imageSources) {
+                                                ctx.openUploadWindow();
+                                                if (!imageSources.length) {
+                                                    return;
+                                                }
+                                                ctx.setPreviewImages(imageSources);
+                                            });
+                                        });
+
+                                        if (addImagesButton.dataset.boundAddButton !== 'true') {
+                                            addImagesButton.dataset.boundAddButton = 'true';
+                                            addImagesButton.addEventListener('click', function (event) {
+                                                event.stopPropagation();
+                                                ctx.addImagesToBuildSection();
+                                            });
+                                        }
+
+                                        if (closeButton.dataset.boundCloseButton !== 'true') {
+                                            closeButton.dataset.boundCloseButton = 'true';
+                                            closeButton.addEventListener('click', function (event) {
+                                                event.stopPropagation();
+                                                uploadWindow.style.display = 'none';
+                                            });
+                                        }
+                                    }
+
+                                    bindUploadHandlers();
+                                })();
+                            </script>
+                        </div>
+                        
+                        <style aria-label="Post_Build_Container-Upload_Widow_Style">
+                            .Post_Build_Container-Upload_Window {
+                                position: fixed;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                width: 260px;
+                                height: 300px;
+                                background-color: var(--Main_UI_Background-Black_Screen);
+                                display: flex;
+                                justify-content: center;
+                                z-index: 5;
+                                display: none;
+                            }
+
+                            .Post_Build_Container-Upload_Window-Buttons {
+                                position: absolute;
+                                bottom: 10px;
+                                display: flex;
+                                flex-direction: row;
+                                gap: 10px;
+                            }
+
+                        </style>
+                        <script aria-label="Post_Build_Container-Upload_Widow_Script">
+                            (function () {
+                                var uploadMenuButton = document.getElementById('Post_Build_Container-Upload');
+                                var uploadMenu = document.querySelector('.Post_Build_Container-Menu');
+                                var uploadWindow = document.querySelector('.Post_Build_Container-Upload_Window');
+                                var uploadImagesContainer = document.querySelector('.Upload_Images_Container');
+                                var buildPostSection = null;
+                                var postTextArea = null;
+
+                                if (!uploadMenuButton || !uploadWindow || !uploadImagesContainer) {
+                                    return;
+                                }
+
+                                function getBuildPostSection() {
+                                    if (!buildPostSection) {
+                                        buildPostSection = document.querySelector('.Build_Post_Section');
+                                    }
+                                    return buildPostSection;
+                                }
+
+                                function getPostTextArea() {
+                                    if (!postTextArea) {
+                                        postTextArea = document.getElementById('Post_Text_Area');
+                                    }
+                                    return postTextArea;
+                                }
+
+                                var selectedImages = [];
+                                var activeImageIndex = 0;
+                                var touchStartX = null;
+                                var buildImagesContainer = null;
+                                var buildTouchStartX = null;
+                                var suspendOutsideCloseUntil = 0;
+
+                                function ensureBuildImagesContainer() {
+                                    var buildSection = getBuildPostSection();
+                                    if (!buildSection) {
+                                        return null;
+                                    }
+                                    if (!buildImagesContainer) {
+                                        buildImagesContainer = buildSection.querySelector('.Build_Post_Section-Images');
+                                    }
+                                    if (!buildImagesContainer) {
+                                        buildImagesContainer = document.createElement('div');
+                                        buildImagesContainer.className = 'Build_Post_Section-Images';
+                                        buildSection.insertBefore(buildImagesContainer, buildSection.querySelector('.Build_Post_Section-Bottom_Buttons'));
+                                    }
+
+                                    if (buildImagesContainer && buildImagesContainer.dataset.swipeBound !== 'true') {
+                                        buildImagesContainer.dataset.swipeBound = 'true';
+                                        buildImagesContainer.addEventListener('touchstart', function (event) {
+                                            if (!event.touches || !event.touches.length) {
+                                                return;
+                                            }
+                                            buildTouchStartX = event.touches[0].clientX;
+                                        }, { passive: true });
+
+                                        buildImagesContainer.addEventListener('touchend', function (event) {
+                                            if (buildTouchStartX === null || !event.changedTouches || !event.changedTouches.length) {
+                                                buildTouchStartX = null;
+                                                return;
+                                            }
+
+                                            var deltaX = event.changedTouches[0].clientX - buildTouchStartX;
+                                            buildTouchStartX = null;
+                                            if (Math.abs(deltaX) < 30) {
+                                                return;
+                                            }
+
+                                            var step = Math.max(buildImagesContainer.clientWidth * 0.75, 120);
+                                            buildImagesContainer.scrollBy({
+                                                left: deltaX < 0 ? step : -step,
+                                                behavior: 'smooth'
+                                            });
+                                        }, { passive: true });
+                                    }
+
+                                    return buildImagesContainer;
+                                }
+
+                                function renderUploadPreview() {
+                                    var toRemove = [];
+                                    for (var i = 0; i < uploadImagesContainer.children.length; i++) {
+                                        var child = uploadImagesContainer.children[i];
+                                        var tag = child.tagName.toLowerCase();
+                                        if (tag !== 'style' && tag !== 'script') {
+                                            toRemove.push(child);
+                                        }
+                                    }
+                                    toRemove.forEach(function (el) { el.remove(); });
+
+                                    if (!selectedImages.length) {
+                                        var emptyState = document.createElement('div');
+                                        emptyState.className = 'Upload_Images_Empty';
+                                        emptyState.textContent = 'No images selected';
+                                        uploadImagesContainer.appendChild(emptyState);
+                                        return;
+                                    }
+
+                                    var track = document.createElement('div');
+                                    track.className = 'Upload_Images_Track';
+                                    track.style.cssText = 'height:100%;display:flex;transition:transform 0.22s ease;';
+
+                                    selectedImages.forEach(function (src) {
+                                        var slide = document.createElement('div');
+                                        slide.className = 'Upload_Images_Slide';
+                                        slide.style.cssText = 'flex:0 0 100%;max-width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;';
+
+                                        var image = document.createElement('img');
+                                        image.src = src;
+                                        image.alt = 'Upload preview';
+                                        image.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;object-position:center;display:block;';
+
+                                        slide.appendChild(image);
+                                        track.appendChild(slide);
+                                    });
+
+                                    track.style.transform = 'translateX(' + (activeImageIndex * -100) + '%)';
+                                    uploadImagesContainer.appendChild(track);
+
+                                    var indicator = document.createElement('div');
+                                    indicator.className = 'Upload_Images_Indicator';
+                                    indicator.textContent = (activeImageIndex + 1) + ' / ' + selectedImages.length;
+                                    uploadImagesContainer.appendChild(indicator);
+                                }
+
+                                function moveToNextImage(direction) {
+                                    if (selectedImages.length < 2) {
+                                        return;
+                                    }
+                                    activeImageIndex += direction;
+                                    if (activeImageIndex < 0) {
+                                        activeImageIndex = selectedImages.length - 1;
+                                    }
+                                    if (activeImageIndex >= selectedImages.length) {
+                                        activeImageIndex = 0;
+                                    }
+                                    renderUploadPreview();
+                                }
+
+                                function resetUploadWindowPreview() {
+                                    selectedImages = [];
+                                    activeImageIndex = 0;
+                                }
+
+                                function openUploadWindow() {
+                                    resetUploadWindowPreview();
+                                    uploadWindow.style.display = 'flex';
+                                    renderUploadPreview();
+                                }
+
+                                function closeUploadWindow() {
+                                    uploadWindow.style.display = 'none';
+                                }
+
+                                function readFilesAsDataUrls(files) {
+                                    var imageFiles = Array.from(files || []).filter(function (file) {
+                                        return file && file.type && file.type.indexOf('image/') === 0;
+                                    });
+
+                                    return Promise.all(imageFiles.map(function (file) {
+                                        return new Promise(function (resolve) {
+                                            var reader = new FileReader();
+                                            reader.onload = function () {
+                                                resolve(String(reader.result || ''));
+                                            };
+                                            reader.onerror = function () {
+                                                resolve('');
+                                            };
+                                            reader.readAsDataURL(file);
+                                        });
+                                    })).then(function (results) {
+                                        return results.filter(Boolean);
+                                    });
+                                }
+
+                                function addImagesToBuildSection() {
+                                    if (!selectedImages.length) {
+                                        return;
+                                    }
+
+                                    var container = ensureBuildImagesContainer();
+                                    if (!container) {
+                                        return;
+                                    }
+                                    container.innerHTML = '';
+
+                                    selectedImages.forEach(function (src) {
+                                        var image = document.createElement('img');
+                                        image.src = src;
+                                        image.alt = 'Post image';
+                                        container.appendChild(image);
+                                    });
+
+                                    container.style.display = 'flex';
+                                    var descriptionTextArea = getPostTextArea();
+                                    if (descriptionTextArea) {
+                                        descriptionTextArea.style.height = 'calc(100% - 160px)';
+                                    }
+                                    closeUploadWindow();
+                                }
+
+                                window.__postBuildUploadWindowCtx = {
+                                    openUploadWindow: openUploadWindow,
+                                    readFilesAsDataUrls: readFilesAsDataUrls,
+                                    addImagesToBuildSection: addImagesToBuildSection,
+                                    suspendOutsideClose: function (durationMs) {
+                                        suspendOutsideCloseUntil = Date.now() + (Number(durationMs) || 0);
+                                    },
+                                    setPreviewImages: function (imageSources) {
+                                        selectedImages = Array.isArray(imageSources) ? imageSources : [];
+                                        activeImageIndex = 0;
+                                        renderUploadPreview();
+                                    }
+                                };
+
+                                uploadMenuButton.addEventListener('click', function (event) {
+                                    event.stopPropagation();
+                                    openUploadWindow();
+                                });
+
+                                if (uploadMenu) {
+                                    uploadMenu.addEventListener('click', function (event) {
+                                        if (!event.target.closest('#Post_Build_Container-Upload')) {
+                                            return;
+                                        }
+                                        event.stopPropagation();
+                                        openUploadWindow();
+                                    });
+                                }
+
+                                uploadImagesContainer.addEventListener('touchstart', function (event) {
+                                    if (!event.touches || !event.touches.length) {
+                                        return;
+                                    }
+                                    touchStartX = event.touches[0].clientX;
+                                }, { passive: true });
+
+                                uploadImagesContainer.addEventListener('touchend', function (event) {
+                                    if (touchStartX === null || !event.changedTouches || !event.changedTouches.length) {
+                                        touchStartX = null;
+                                        return;
+                                    }
+                                    var deltaX = event.changedTouches[0].clientX - touchStartX;
+                                    touchStartX = null;
+                                    if (Math.abs(deltaX) < 30) {
+                                        return;
+                                    }
+                                    moveToNextImage(deltaX < 0 ? 1 : -1);
+                                }, { passive: true });
+
+                                document.addEventListener('click', function (event) {
+                                    if (window.getComputedStyle(uploadWindow).display === 'none') {
+                                        return;
+                                    }
+                                    if (Date.now() < suspendOutsideCloseUntil) {
+                                        return;
+                                    }
+                                    if (uploadWindow.contains(event.target) || uploadMenuButton.contains(event.target)) {
+                                        return;
+                                    }
+                                    closeUploadWindow();
+                                });
+
+                                renderUploadPreview();
+                            })();
+
+                        </script>
+
+                    </div>
+
+                    <!-- --Book_Mark - (Tag_Wimdow)--------------------- -->
+
+                    <div class="Post_Build_Container-Tag_Window">
+
+                        <input id="Post_Build_Container-Tag_Window-Search_Friends_Input" placeholder="Search Friends..." type="text">
+
+                        <div class="Post_Build_Container-Tag_Window-Friends_List">
+
+                            <div class="Friend_Container">
+                                <div class="Profile_Details">
+                                    <img src="/Images/Profile Images/Profile-2.png" alt="">
+                                    <p id="Profile_Name">John Doe</p>
+
+                                    <style aria-label="Profile_Details_Style">
+                                        .Profile_Details {
+                                            margin-left: 10px;
+                                            width: auto;
+                                            height: auto;
+                                            display: flex;
+                                            flex-direction: row;
+                                            align-items: center;
+                                            gap: 10px;
+                                        }
+
+                                        .Profile_Details > img {
+                                            width: 30px;
+                                            height: 30px;
+                                            border-radius: 50%;
+                                        }
+
+                                        .Profile_Details > #Profile_Name {
+                                            font-size: var(--Main_Font_Size);
+                                            color: var(--Main_UI_Text_Color);
+                                        }
+                                    </style>
+                                    <script aria-label="Profile_Details_Script">
+                                        
+                                    </script>
+                                </div>
+                                
+                                <span id="Is_Selected_Profile">[]</span>
+
+                                <style aria-label="Friend_Container_Style">
+                                    .Friend_Container {
+                                        width: 100%;
+                                        height: 50px;
+                                        background: none;
+                                        display: flex;
+                                        align-items: center;
+                                    }
+
+                                    .Friend_Container > #Is_Selected_Profile {
+                                        position: absolute;
+                                        right: 10px;
+                                        color: var(--Main_UI_Text_Color);
+                                        font-size: var(--Main_Font_Size);
+                                    }
+
+                                </style>
+                                <script aria-label="Friend_Container_Script">
+                                    (function () {
+                                        var scriptTag = document.currentScript;
+                                        var friendContainer = scriptTag ? scriptTag.closest('.Friend_Container') : null;
+                                        if (!friendContainer) {
+                                            return;
+                                        }
+
+                                        var selectedIndicator = friendContainer.querySelector('#Is_Selected_Profile');
+                                        if (!selectedIndicator) {
+                                            return;
+                                        }
+
+                                        function setSelectedState(isSelected) {
+                                            friendContainer.dataset.isSelected = isSelected ? 'true' : 'false';
+                                            selectedIndicator.textContent = isSelected ? '[\u2713]' : '[]';
+                                        }
+
+                                        setSelectedState(false);
+
+                                        friendContainer.addEventListener('click', function () {
+                                            var isSelected = friendContainer.dataset.isSelected === 'true';
+                                            setSelectedState(!isSelected);
+                                        });
+                                    })();
+                                </script>
+                            </div>
+
+                            <style aria-label="Post_Build_Container-Tag_Window-Friends_List_Style">
+                                .Post_Build_Container-Tag_Window-Friends_List {
+                                    position: absolute;
+                                    top: 40px;
+                                    width: calc(100% - 20px);
+                                    height: calc(100% - 80px);
+                                    background: none;
+                                }
+                            </style>
+                            <script aria-label="Post_Build_Container-Tag_Window-Friends_List_Script">
+
+                            </script>
+                        </div>
+
+                        
+                        <div class="Post_Build_Container-Tag_Window-Bottom_Buttons">
+                            <button id="Post_Build_Container-Tag_Window-Tag_Button">[ Tag ]</button>
+                            <button id="Post_Build_Container-Tag_Window-Close_Button">[ Close ]</button>
+
+                            <style aria-label="Post_Build_Container-Tag_Window-Bottom_Buttons_Style">
+                                .Post_Build_Container-Tag_Window-Bottom_Buttons {
+                                    position: absolute;
+                                    bottom: 10px;
+                                    width: 100%;
+                                    display: flex;
+                                    flex-direction: row;
+                                    justify-content: center;
+                                    gap: 10px;
+                                }
+
+                                .Post_Build_Container-Tag_Window-Bottom_Buttons > button {
+                                    border: none;
+                                    outline: none;
+                                    background: none;
+                                    color: var(--Main_UI_Text_Color);
+                                    font-size: var(--Main_Font_Size);
+                                    display: flex;
+                                    cursor: pointer;
+                                }
+                            </style>
+                            <script aria-label="Post_Build_Container-Tag_Window-Bottom_Buttons_Script">
+                                (function () {
+                                    var tagWindow = document.querySelector('.Post_Build_Container-Tag_Window');
+                                    var tagButton = document.getElementById('Post_Build_Container-Tag_Window-Tag_Button');
+                                    var closeButton = document.getElementById('Post_Build_Container-Tag_Window-Close_Button');
+
+                                    if (!tagWindow || !tagButton || !closeButton) {
+                                        return;
+                                    }
+
+                                    function closeTagWindow() {
+                                        tagWindow.style.display = 'none';
+                                    }
+
+                                    tagButton.addEventListener('click', function (event) {
+                                        event.stopPropagation();
+                                        closeTagWindow();
+                                    });
+
+                                    closeButton.addEventListener('click', function (event) {
+                                        event.stopPropagation();
+                                        closeTagWindow();
+                                    });
+                                })();
+                            </script>
+                        </div>
+                        
+                        <style aria-label="Post_Build_Container-Tag_Window_Style">
+                            .Post_Build_Container-Tag_Window {
+                                position: fixed;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                width: 300px;
+                                height: 400px;
+                                background: var(--Main_UI_Background-Black_Screen);
+                                display: none;
+                                justify-content: center;
+                                z-index: 4;
+                            }
+
+                            #Post_Build_Container-Tag_Window-Search_Friends_Input {
+                                position: absolute;
+                                top: 10px;
+                                left: 10px;
+                                width: calc(100% - 20px);
+                                height: 20px;
+                                border: none;
+                                outline: none;
+                                background: none;
+                                color: var(--Main_UI_Text_Color);
+                                text-align: left;
+                                display: flex;
+                                align-items: center;
+                                vertical-align: top;
+                                resize: none;
+                                font-size: var(--Main_Font_Size);
+                            }
+                            
+                            #Post_Build_Container-Tag_Window-Search_Friends_Input::placeholder {
+                                color: var(--Main_UI_Text_Color);
+                            }
+
+                            
+
+                            
+                        </style>
+                        <script aria-label="Post_Build_Container-Tag_Window_Script">
+                            (function () {
+                                var tagMenuButton = document.getElementById('Post_Build_Container-Tag');
+                                var tagWindow = document.querySelector('.Post_Build_Container-Tag_Window');
+
+                                if (!tagMenuButton || !tagWindow) {
+                                    return;
+                                }
+
+                                function openTagWindow() {
+                                    tagWindow.style.display = 'flex';
+                                }
+
+                                function closeTagWindow() {
+                                    tagWindow.style.display = 'none';
+                                }
+
+                                tagMenuButton.addEventListener('click', function (event) {
+                                    event.stopPropagation();
+                                    openTagWindow();
+                                });
+
+                                document.addEventListener('click', function (event) {
+                                    if (window.getComputedStyle(tagWindow).display === 'none') {
+                                        return;
+                                    }
+                                    if (tagWindow.contains(event.target) || tagMenuButton.contains(event.target)) {
+                                        return;
+                                    }
+                                    closeTagWindow();
+                                });
+                            })();
+                        </script>
+                    </div> 
+
+                    <!-- --Book_Mark - (Add_Wimdow)--------------------- -->
+
+                    <div class="Post_Build_Container-Add_Window">
+                        <button id="Post_Build_Container-Add_Window-Close_Button">[ Close ]</button>
+
+                        <div class="Post_Build_Container-Add_Window-Add_Object_List">
+
+                            <button id="Add_Object_Button-Add_Travel_Map">[ Add Travel Map ]</button>
+                            <button id="Add_Object_Button-Add_Passenger_Slot">[ Add Passenger Slot ]</button>
+                            <button id="Add_Object_Button-Add_Map_Data">[ Add Map Data ]</button>
+                            <button id="Add_Object_Button-Add_Cad_Model">[ Add Cad Model ]</button>
+                            <button id="Add_Object_Button-Add_Fund_Raiser">[ Add Fund Raiser ]</button>
+                            <button id="Add_Object_Button-Add_Product">[ Add Product ]</button>
+
+                            <div class="Add_Object_Button-Add_Travel_Map-Popup_Window">
+                                
+                                <p id="Add_Object_Button-Add_Travel_Map-Popup_Window-Title">Travel Map</p>
+
+                                <div class="Add_Object_Button-Add_Travel_Map-Popup_Window-From--To">
+                                    <button id="Add_Object_Button-Add_Travel_Map-Popup_Window-Get_From">[ From... ]</button>
+                                    <button id="Add_Object_Button-Add_Travel_Map-Popup_Window-Get_To">[ To... ]</button>
+
+                                    <div class="Add_Object_Button-Add_Travel_Map-Popup_Window-Get_From-Get_From_Location_Window">
+
+                                    </div>
+
+                                    <div class="Add_Object_Button-Add_Travel_Map-Popup_Window-Get_From-Get_To_Location_Window">
+
+                                    </div>
+
+                                    <style>
+                                        .Add_Object_Button-Add_Travel_Map-Popup_Window-From--To {
+                                            position: absolute;
+                                            top: 40px;
+                                            left: 10px;
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 10px;
+                                        }
+
+                                        .Add_Object_Button-Add_Travel_Map-Popup_Window-From--To > button {
+                                            border: none;
+                                            outline: none;
+                                            background: none;
+                                            color: var(--Main_UI_Text_Color);
+                                            font-size: var(--Main_Font_Size);
+                                            display: flex;
+                                            cursor: pointer;
+                                        }
+                                    </style>
+                                    <script>
+
+                                    </script>
+                                </div>
+
+                                <div class="Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons">
+                                    <button id="Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons-Draw_Map">[ Draw Map ]</button>
+                                    <button id="Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons-Add">[ Add ]</button>
+                                    <button id="Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons-Close">[ Close ]</button>
+                                    
+                                    <style aria-label="Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons_Style">
+                                        .Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons {
+                                            position: absolute;
+                                            bottom: 10px;
+                                            display: flex;
+                                            flex-direction: row;
+                                            gap: 10px;
+                                        }
+
+                                        .Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons > button {
+                                            border: none;
+                                            outline: none;
+                                            background: none;
+                                            color: var(--Main_UI_Text_Color);
+                                            font-size: var(--Main_Font_Size);
+                                            display: flex;
+                                            cursor: pointer;
+                                        }
+
+                                    </style>
+                                    <script aria-label="Add_Object_Button-Add_Travel_Map-Popup_Window-Bottom_Buttons_Script">
+
+                                    </script>
+                                </div>
+
+                                <style aria-label="Add_Object_Button-Add_Travel_Map-Popup_Window_Style">
+                                    .Add_Object_Button-Add_Travel_Map-Popup_Window {
+                                        position: fixed;
+                                        top: 50%;
+                                        left: 50%;
+                                        transform: translate(-50%, -50%);
+                                        width: 320px;
+                                        height: 120px;
+                                        background-color: var(--Main_UI_Background-Black_Screen);
+                                        display: flex;
+                                        justify-content: center;
+                                        z-index: 5;
+                                    }
+
+                                    .Add_Object_Button-Add_Travel_Map-Popup_Window > #Add_Object_Button-Add_Travel_Map-Popup_Window-Title {
+                                        position: absolute;
+                                        top: 10px;
+                                        left: 10px;
+                                        font-size: var(--Main_Font_Size);
+                                        color: var(--Main_UI_Text_Color);
+                                    }
+
+                                    
+                                </style>
+                                <Script aria-label="Add_Object_Button-Add_Travel_Map-Popup_Window_Script">
+
+                                </Script>
+                            </div>
+                            
+
+                            <style aria-label="Post_Build_Container-Add_Window-Add_Object_List_Style">
+                                .Post_Build_Container-Add_Window-Add_Object_List {
+                                    position: absolute;
+                                    top: 10px;
+                                    width: calc(100% - 20px);
+                                    height: calc(100% - 50px);
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    gap: 10px;
+                                    z-index: 4;
+                                }
+
+                                .Post_Build_Container-Add_Window-Add_Object_List > button {
+                                    border: none;
+                                    outline: none;
+                                    background: none;
+                                    width: 100%;
+                                    height: 20px;
+                                    color: var(--Main_UI_Text_Color);
+                                    font-size: var(--Main_Font_Size);
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    cursor: pointer;
+                                }
+
+                                .Post_Build_Container-Add_Window-Add_Object_List > button:hover {
+                                    background-color: var(--UI_Background_Hover);
+                                    color: var(--UI_Text_Color_Hover);
+                                }
+                            </style>
+                            <script aria-label="Post_Build_Container-Add_Window-Add_Object_List_Script">
+
+                            </script>
+                        </div>
+
+                        <style aria-label="Post_Build_Container-Add_Window_Style">
+                            .Post_Build_Container-Add_Window {
+                                position: fixed;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                width: 220px;
+                                height: 300px;
+                                background-color: var(--Main_UI_Background-Black_Screen);
+                                display: none;
+                                justify-content: center;
+                                z-index: 4;
+                            }
+
+                            .Post_Build_Container-Add_Window > #Post_Build_Container-Add_Window-Close_Button {
+                                position: absolute;
+                                bottom: 10px;
+                                border: none;
+                                outline: none;
+                                background: none;
+                                color: var(--Main_UI_Text_Color);
+                                font-size: var(--Main_Font_Size);
+                                display: flex;
+                                cursor: pointer;
+                            }
+                        </style>
+                        <script aria-label="Post_Build_Container-Add_Window_Script">
+                            (function () {
+                                var addMenuButton = document.getElementById('Post_Build_Container-Add');
+                                var addWindow = document.querySelector('.Post_Build_Container-Add_Window');
+                                var addWindowCloseButton = document.getElementById('Post_Build_Container-Add_Window-Close_Button');
+
+                                if (!addMenuButton || !addWindow) {
+                                    return;
+                                }
+
+                                function openAddWindow() {
+                                    addWindow.style.display = 'flex';
+                                }
+
+                                function closeAddWindow() {
+                                    addWindow.style.display = 'none';
+                                }
+
+                                addMenuButton.addEventListener('click', function (event) {
+                                    event.stopPropagation();
+                                    openAddWindow();
+                                });
+
+                                if (addWindowCloseButton) {
+                                    addWindowCloseButton.addEventListener('click', function (event) {
+                                        event.stopPropagation();
+                                        closeAddWindow();
+                                    });
+                                }
+
+                                document.addEventListener('click', function (event) {
+                                    if (window.getComputedStyle(addWindow).display === 'none') {
+                                        return;
+                                    }
+                                    if (addWindow.contains(event.target) || addMenuButton.contains(event.target)) {
+                                        return;
+                                    }
+                                    closeAddWindow();
+                                });
+                            })();
+                        </script>
+                    </div>
+                    
+                    <style aria-label="Post_Build_Container-Menu_Style">
+                        .Post_Build_Container-Menu {
+                            position: absolute;
+                            top: 10px;
+                            left: 10px;
+                            width: 100%;
+                            height: auto;
+                            display: flex;
+                            flex-direction: row;
+                            gap: 10px;
+                        }
+
+                        .Post_Build_Container-Menu > button {
+                            border: none;
+                            outline: none;
+                            background: none;
+                            color: var(--Main_UI_Text_Color);
+                            font-size: var(--Main_Font_Size);
+                            display: flex;
+                            cursor: pointer;
+                        }
+                    </style>
+                    <script aria-label="Post_Build_Container-Menu_Script">
+                        (function () {
+                            var menu = document.querySelector('.Post_Build_Container-Menu');
+                            var uploadWindow = document.querySelector('.Post_Build_Container-Upload_Window');
+                            var tagWindow = document.querySelector('.Post_Build_Container-Tag_Window');
+                            var addWindow = document.querySelector('.Post_Build_Container-Add_Window');
+
+                            if (!menu) {
+                                return;
+                            }
+
+                            function closeOpenWindows() {
+                                if (uploadWindow) {
+                                    uploadWindow.style.display = 'none';
+                                }
+                                if (tagWindow) {
+                                    tagWindow.style.display = 'none';
+                                }
+                                if (addWindow) {
+                                    addWindow.style.display = 'none';
+                                }
+                            }
+
+                            menu.addEventListener('click', function (event) {
+                                var menuButton = event.target.closest('.Post_Build_Container-Menu > button');
+                                if (!menuButton) {
+                                    return;
+                                }
+                                closeOpenWindows();
+                            }, true);
+                        })();
+                    </script>
+                </div>
+                <button id="Post_Section_Create_Post_Build_Container-Close_Button">[ Close ]</button>
+
                 <div class="Build_Post_Section">
-                    <input id="Post_Text_Area" type="text">
+                    <textarea id="Post_Text_Area" placeholder="Write your post..."></textarea>
 
                     <div class="Build_Post_Section-Bottom_Buttons">
-                        <button id="">the</button>
+                        <button id="Build_Post_Section-Bottom_Buttons-Type">[ Type - Regular Post ]</button>
+
+
+                        <!--Book_Mark - (Post_Build_Container-Menu Style)-->
+
+                        <div class="Bottom_Buttons-Type-Popup_Window">
+
+                            <button id="Type-Popup_Window-Button">[ Text Post ] --</button>
+                            <button id="Type-Popup_Window-Button">[ Image Post ] ----</button>
+                            <button id="Type-Popup_Window-Button">[ Video Post ] ----</button>
+                            <button id="Type-Popup_Window-Button">[ Pickup Post ] ----</button>
+                            <button id="Type-Popup_Window-Button">[ Startup Post ] -----</button>
+                            <button id="Type-Popup_Window-Button">[ Fundraise Post ] -----</button>
+                            <button id="Type-Popup_Window-Button">[ Publish Post ] -----</button>
+
+                            <style aria-label="Bottom_Buttons-Type-Popup_Window_Style">
+
+                                .Bottom_Buttons-Type-Popup_Window {
+                                    position: fixed;
+                                    width: auto;
+                                    height: auto;
+                                    background-color: var(--Main_UI_Background-Black_Screen);
+                                    padding: 10px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    z-index: 4;
+                                    display: none;
+                                }
+
+                                .Bottom_Buttons-Type-Popup_Window > button {
+                                    height: 20px;
+                                    border: none;
+                                    outline: none;
+                                    background: none;
+                                    color: var(--Main_UI_Text_Color);
+                                    font-size: var(--Main_Font_Size);
+                                    display: flex;
+                                    align-items: center;
+                                    cursor: pointer;
+                                    
+                                }
+
+                                .Bottom_Buttons-Type-Popup_Window > button:hover {
+                                    background-color: var(--UI_Background_Hover);
+                                    color: var(--UI_Text_Color_Hover);
+                                }
+
+                                
+                            </style>
+                            <script aria-label="Bottom_Buttons-Type-Popup_Window_Script">
+                                (function () {
+                                    var popupWindow = document.querySelector('.Bottom_Buttons-Type-Popup_Window');
+                                    var typeButton = document.getElementById('Build_Post_Section-Bottom_Buttons-Type');
+                                    var buildContainer = document.querySelector('.Post_Section_Create_Post_Build_Container');
+                                    var defaultTypeName = 'Text Post';
+
+                                    if (!popupWindow || !typeButton) {
+                                        return;
+                                    }
+
+                                    function setTypeLabel(typeName) {
+                                        typeButton.textContent = '[ Type - ' + typeName + ' ]';
+                                    }
+
+                                    function closePopup() {
+                                        popupWindow.style.display = 'none';
+                                    }
+
+                                    function openPopup() {
+                                        popupWindow.style.display = 'flex';
+                                    }
+
+                                    function isBuildContainerVisible() {
+                                        if (!buildContainer) {
+                                            return true;
+                                        }
+                                        return window.getComputedStyle(buildContainer).display !== 'none';
+                                    }
+
+                                    function applyDefaultType() {
+                                        setTypeLabel(defaultTypeName);
+                                        closePopup();
+                                    }
+
+                                    applyDefaultType();
+
+                                    if (buildContainer) {
+                                        var containerObserver = new MutationObserver(function () {
+                                            if (isBuildContainerVisible()) {
+                                                applyDefaultType();
+                                            } else {
+                                                closePopup();
+                                            }
+                                        });
+
+                                        containerObserver.observe(buildContainer, {
+                                            attributes: true,
+                                            attributeFilter: ['style', 'class']
+                                        });
+                                    }
+
+                                    typeButton.addEventListener('click', function (event) {
+                                        event.stopPropagation();
+                                        if (!isBuildContainerVisible()) {
+                                            return;
+                                        }
+
+                                        var isOpen = window.getComputedStyle(popupWindow).display !== 'none';
+                                        if (isOpen) {
+                                            closePopup();
+                                        } else {
+                                            openPopup();
+                                        }
+                                    });
+
+                                    popupWindow.addEventListener('click', function (event) {
+                                        var optionButton = event.target.closest('button');
+                                        if (!optionButton) {
+                                            return;
+                                        }
+
+                                        var optionText = optionButton.textContent
+                                            .replace(/\[|\]/g, '')
+                                            .replace(/-/g, '')
+                                            .trim();
+
+                                        if (!optionText) {
+                                            return;
+                                        }
+
+                                        setTypeLabel(optionText);
+                                        closePopup();
+                                        event.stopPropagation();
+                                    });
+
+                                    document.addEventListener('click', function (event) {
+                                        if (popupWindow.style.display === 'none') {
+                                            return;
+                                        }
+
+                                        if (popupWindow.contains(event.target) || typeButton.contains(event.target)) {
+                                            return;
+                                        }
+
+                                        closePopup();
+                                    });
+                                })();
+
+                            </script>
+                        </div>
+                        
+                        <button id="Build_Post_Section-Bottom_Buttons-Post">[ Post ]</button>
+
+                        <div class="Type_Popup_Container">
+                            <style>
+
+                            </style>
+                            <script>
+
+                            </script>
+                        </div>
+
 
                         <style aria-label="Build_Post_Section_Bottom_Buttons_Style">
                             .Build_Post_Section-Bottom_Buttons {
@@ -2756,7 +3906,27 @@
                                 bottom: 0px;
                                 width: 100%;
                                 height: 30px;
-                                background-color: #66ffaa;
+                                background-color: #4b613969;
+                                display: flex;
+                                align-items: center;
+                                gap: 10px;
+                                padding-left: 10px;
+                            }
+
+                            .Build_Post_Section-Bottom_Buttons > button {
+                                border: none;
+                                outline: none;
+                                background: none;
+                                color: var(--Main_UI_Text_Color);
+                                font-size: var(--Main_Font_Size);
+                                display: flex;
+                                cursor: pointer;
+                                
+                            }
+
+                            .Build_Post_Section-Bottom_Buttons > #Build_Post_Section-Bottom_Buttons-Post {
+                                position: absolute;
+                                right: 10px;
                             }
                         </style>
                         <script aria-label="Build_Post_Section_Bottom_Buttons_Script">
@@ -2774,16 +3944,48 @@
                             background-color: var(--Main_UI_Background);
                             border: var(--Main_Border);
                             display: flex;
-                            justify-content: center;
-                            align-items: center;
+                            justify-content: flex-start;
+                            align-items: flex-start;
                         }
                         
                         #Post_Text_Area {
                             position: absolute;
                             top: 10px;
+                            left: 10px;
                             width: calc(100% - 20px);
-                            height: calc(100% - 60px);
+                            height: calc(100% - 50px);
+                            border: none;
+                            outline: none;
+                            background: none;
+                            color: var(--Main_UI_Text_Color);
+                            text-align: left;
+                            vertical-align: top;
+                            resize: none;
+                            font-size: var(--Main_Font_Size);
+                        }
+
+                        .Build_Post_Section-Images {
+                            position: absolute;
+                            left: 10px;
+                            bottom: 40px;
+                            width: calc(100% - 20px);
+                            height: 100px;
                             display: none;
+                            gap: 8px;
+                            overflow-x: auto;
+                            overflow-y: hidden;
+                            padding-bottom: 4px;
+                            scrollbar-width: thin;
+                            scroll-snap-type: x mandatory;
+                            -webkit-overflow-scrolling: touch;
+                        }
+
+                        .Build_Post_Section-Images > img {
+                            height: 100%;
+                            border: var(--Main_Border);
+                            object-fit: cover;
+                            flex: 0 0 auto;
+                            scroll-snap-align: start;
                         }
                     </style>
                     <script aria-label="Build_Post_Section_Script">
@@ -2800,6 +4002,20 @@
                         background-color: rgba(68, 68, 68, 0.5);
                         backdrop-filter: blur(10px);
                         z-index: 1;
+                        display: flex;
+                        justify-content: center;
+                    }
+                    
+                    #Post_Section_Create_Post_Build_Container-Close_Button {
+                        position: absolute;
+                        bottom: 20px;
+                        border: none;
+                        outline: none;
+                        background: none;
+                        color: var(--Main_UI_Text_Color);
+                        font-size: var(--Main_Font_Size);
+                        display: flex;
+                        cursor: pointer;
                     }
                 </style>
                 <script aria-label="Post_Section_Create_Post_Build_Container_Script">
@@ -3097,7 +4313,6 @@
                 justify-content: center;
                 align-items: center;
                 overflow: hidden;
-                display: none;
             }
         </style>
         <script aria-label="Page_1_Main_Script">
