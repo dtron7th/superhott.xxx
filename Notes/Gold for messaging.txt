@@ -1,0 +1,17 @@
+ok...i tried to look up people in the Find_Window using local host...that doesnt work...so i have a new idea...were just going to use the https:// instead.....
+
+use the neon database setup in the project
+
+1...lets use Page_1_Main as the main user account...store all the information that the user puts in anywhere in Page_1_Main in the neon database....
+
+if user fills out Page_1-New_User_Fill_Out...store all the information in the neon database
+
+2, if user changes any information in Page_1-New_User_Fill_Out...automatically update the current saved information to the neondatabase...make sure that the site doesnt continously refresh the page...
+
+3...for Find_Window...search for anything thats in the neon database
+
+4....for Messages_And_Messaging-Friends_Window...clear everything inside the list....now the search engine only searches for friends in the friends database.
+
+5...create a friends database for the  Messages_And_Messaging-Friends_Window so that way the search engine can search for friends in the friends database
+
+6....if Find_Window-Profile_Popup_Window-Add_Friend is pressed....then add the account to the friends database

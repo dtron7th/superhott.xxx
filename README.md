@@ -11,7 +11,7 @@ Neon-backed account hash API + realtime user counter.
 - `package.json` - server dependencies and start script
 - `.env.example` - required environment variables
 
-## Setup
+## 
 
 1. Install dependencies:
    ```bash

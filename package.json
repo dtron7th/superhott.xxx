@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "dev:node": "node server.js"
+    "dev:node": "node server.js",
+    "dev:local": "node server-local.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

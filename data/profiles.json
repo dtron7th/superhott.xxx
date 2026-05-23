@@ -1,0 +1,22 @@
+{
+  "3c62efa5d4e0b571a33cf0fdc356d3a9c9f6a772c1ab775a6d93838cd86ca869": {
+    "profileImage": "http://192.168.0.242:5500/Images/Profile%20Images/Profile-2.png",
+    "userName": "Unknown User",
+    "age": "21",
+    "birthday": "2003-01-01",
+    "sex": "male",
+    "height": "170 cm",
+    "weight": "70 kg",
+    "ethnicity": "Unknown"
+  },
+  "guest": {
+    "profileImage": "http://192.168.0.242:5500/Images/Profile%20Images/Profile-2.png",
+    "userName": "Null",
+    "age": "0",
+    "birthday": "Null",
+    "sex": "Null",
+    "height": "Null",
+    "weight": "Null",
+    "ethnicity": "Null"
+  }
+}
