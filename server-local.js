@@ -10,6 +10,7 @@ const HOST = '0.0.0.0';
 const DATA_DIR = path.join(__dirname, 'data');
 const HASHES_FILE = path.join(DATA_DIR, 'accounts.json');
 const PROFILES_FILE = path.join(DATA_DIR, 'profiles.json');
+const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
 
 const sseClients = new Set();
 
@@ -128,6 +129,38 @@ function saveProfiles(profiles) {
     }
 }
 
+function loadCategories() {
+    try {
+        if (fs.existsSync(CATEGORIES_FILE)) {
+            var parsed = JSON.parse(fs.readFileSync(CATEGORIES_FILE, 'utf8'));
+            if (Array.isArray(parsed)) return parsed;
+        }
+    } catch (error) {
+        console.error('Failed to load categories:', error.message);
+    }
+    return [];
+}
+
+function saveCategories(categories) {
+    try {
+        fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(categories, null, 2), 'utf8');
+    } catch (error) {
+        console.error('Failed to save categories:', error.message);
+    }
+}
+
+function addCategory(name) {
+    var normalized = String(name || '').trim();
+    if (!normalized) return null;
+    var categories = loadCategories();
+    if (categories.indexOf(normalized) === -1) {
+        categories.push(normalized);
+        categories.sort();
+        saveCategories(categories);
+    }
+    return normalized;
+}
+
 function broadcastCount(count) {
     var payload = 'data: ' + JSON.stringify({ count: count }) + '\n\n';
     sseClients.forEach(function (client) {
@@ -147,6 +180,24 @@ app.get('/api/health', function (_req, res) {
 app.get('/api/count', function (_req, res) {
     var hashes = loadHashes();
     res.json({ count: hashes.length });
+});
+
+// Get categories
+app.get('/api/categories', function (_req, res) {
+    var categories = loadCategories();
+    return res.json({ categories: categories });
+});
+
+// Add a new category
+app.post('/api/categories', function (req, res) {
+    var name = req.body && req.body.name;
+    if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'Missing category name' });
+    }
+    var added = addCategory(name);
+    var categories = loadCategories();
+    console.log('[+] Category added:', added);
+    return res.json({ ok: true, added: added, categories: categories });
 });
 
 // Check if hash exists
@@ -211,6 +262,118 @@ app.get('/api/account-profile/:hash', function (req, res) {
     });
 });
 
+const VIDEOS_DIR = path.join(__dirname, 'Videos');
+
+function getVideoFiles() {
+    try {
+        if (!fs.existsSync(VIDEOS_DIR)) return [];
+        return fs.readdirSync(VIDEOS_DIR).filter(function (file) {
+            return /\.(mp4|webm|ogg|mov|mkv|avi)$/i.test(file);
+        });
+    } catch (error) {
+        console.error('Failed to read videos directory:', error.message);
+        return [];
+    }
+}
+
+function buildTitleFromFilename(filename) {
+    return filename.replace(/\.[^/.]+$/, '')
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function parseCost(value) {
+    var str = String(value || '').trim();
+    if (!str) return null;
+    var match = str.replace(/[^0-9.]/g, '').match(/\d+\.?\d*/);
+    return match ? parseFloat(match[0]) : null;
+}
+
+function searchVideos(query, category, access, cost) {
+    var normalizedQuery = String(query || '').trim().toLowerCase();
+    var normalizedAccess = String(access || '').trim().toLowerCase();
+    var targetCost = parseCost(cost);
+
+    return getVideoFiles().map(function (file, index) {
+        var title = buildTitleFromFilename(file);
+        var categoryValue = 'General';
+        var accessValue = 'Free';
+        var costValue = '$0.25';
+
+        // Deterministic defaults based on filename hash so the same file always
+        // returns the same metadata across searches.
+        var hash = 0;
+        for (var i = 0; i < file.length; i++) {
+            hash = ((hash << 5) - hash) + file.charCodeAt(i);
+            hash = hash & hash;
+        }
+        if (Math.abs(hash) % 3 === 0) {
+            accessValue = 'Premium';
+            var costs = ['$0.25', '$0.50', '$0.75', '$1.00'];
+            costValue = costs[Math.abs(hash) % costs.length];
+        }
+
+        var added = '';
+        try {
+            var stats = fs.statSync(path.join(VIDEOS_DIR, file));
+            added = stats.mtime.toISOString();
+        } catch (e) {
+            added = new Date().toISOString();
+        }
+
+        return {
+            id: index,
+            title: title,
+            src: '/Videos/' + encodeURIComponent(file),
+            category: categoryValue,
+            access: accessValue,
+            cost: costValue,
+            added: added
+        };
+    }).filter(function (video) {
+        if (normalizedQuery && !video.title.toLowerCase().includes(normalizedQuery)) {
+            return false;
+        }
+        if (normalizedAccess && video.access.toLowerCase() !== normalizedAccess) {
+            return false;
+        }
+        var videoCost = parseCost(video.cost);
+        if (targetCost !== null && videoCost !== null && videoCost > targetCost) {
+            return false;
+        }
+        return true;
+    });
+}
+
+app.get('/api/videos/search', function (req, res) {
+    try {
+        var videos = searchVideos(req.query.q, req.query.category, req.query.access, req.query.cost);
+        return res.json({ videos: videos });
+    } catch (error) {
+        console.error('Failed to search videos:', error);
+        return res.status(500).json({ error: 'Failed to search videos' });
+    }
+});
+
+app.get('/api/wallpapers', function (_req, res) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    var wallpaperDir = path.join(__dirname, 'Images', 'Wallpaper');
+    fs.readdir(wallpaperDir, function (err, files) {
+        if (err) {
+            console.error('Failed to read wallpaper directory:', err);
+            return res.status(500).json({ error: 'Failed to read wallpaper directory' });
+        }
+        var images = files
+            .filter(function (file) { return /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file); })
+            .sort(function (a, b) { return a.localeCompare(b); })
+            .map(function (file) { return 'Images/Wallpaper/' + encodeURIComponent(file); });
+        return res.json({ wallpapers: images });
+    });
+});
+
 // Search accounts in local data store
 app.get('/api/search/accounts', function (req, res) {
     var query = String(req.query.q || '');
@@ -222,6 +385,12 @@ app.get('/api/search/accounts', function (req, res) {
         results: results,
         currentUser: currentUser
     });
+});
+
+// Serve static HTML/assets from the project root
+app.use(express.static(__dirname));
+app.get('/', function (_req, res) {
+    res.sendFile(path.join(__dirname, 'Index.html'));
 });
 
 // SSE stream for live count updates

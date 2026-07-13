@@ -1,3 +1,4 @@
 {
-    "editor.quickSuggestionsDelay": 1
+    "editor.quickSuggestionsDelay": 1,
+    "liveServer.settings.port": 5501
 }
