@@ -1770,9 +1770,31 @@
                     <button class="PDF417_Info_Popup_Close" type="button" aria-label="Close barcode info">&times;</button>
                 </div>
                 <div class="PDF417_Info_Popup_Body">
-                    <div class="PDF417_Info_Popup_Summary"></div>
-                    <div class="PDF417_Info_Popup_Fields"></div>
-                    <div class="PDF417_Info_Popup_Raw"></div>
+                    <p class="PDF417_Info_Popup_Text">Scanned data decoded successfully.</p>
+                    <div class="PDF417_Info_Popup_Details">
+                        <span class="PDF417_Info_Popup_Label">IDN:</span>
+                        <span class="PDF417_Info_Popup_Value PDF417_Info_Popup_IDN"></span>
+                    </div>
+                    <div class="PDF417_Info_Popup_Details">
+                        <span class="PDF417_Info_Popup_Label">DOB:</span>
+                        <span class="PDF417_Info_Popup_Value PDF417_Info_Popup_DOB"></span>
+                    </div>
+                    <div class="PDF417_Info_Popup_Details">
+                        <span class="PDF417_Info_Popup_Label">Name:</span>
+                        <span class="PDF417_Info_Popup_Value PDF417_Info_Popup_Name"></span>
+                    </div>
+                    <div class="PDF417_Info_Popup_Details">
+                        <span class="PDF417_Info_Popup_Label">Address:</span>
+                        <span class="PDF417_Info_Popup_Value PDF417_Info_Popup_Address"></span>
+                    </div>
+                    <div class="PDF417_Info_Popup_Details">
+                        <span class="PDF417_Info_Popup_Label">EXP:</span>
+                        <span class="PDF417_Info_Popup_Value PDF417_Info_Popup_EXP"></span>
+                    </div>
+                    <div class="PDF417_Info_Popup_Details">
+                        <span class="PDF417_Info_Popup_Label">ISS:</span>
+                        <span class="PDF417_Info_Popup_Value PDF417_Info_Popup_ISS"></span>
+                    </div>
                 </div>
             </div>
             <style aria-label="PDF417_Info_Popup_Style">
@@ -1859,63 +1881,42 @@
                     padding: 1rem;
                     display: flex;
                     flex-direction: column;
-                    gap: 1rem;
+                    gap: 0.75rem;
                 }
 
-                .PDF417_Info_Popup_Summary {
-                    color: #ffffff;
+                .PDF417_Info_Popup_Text {
+                    margin: 0;
+                    color: rgba(255, 255, 255, 0.7);
                     font-family: 'Open Sans', sans-serif;
-                    font-size: 0.85rem;
+                    font-size: 0.9rem;
+                    line-height: 1.4;
                     text-align: center;
-                    padding: 0.5rem;
-                    background: rgba(25, 126, 0, 0.15);
-                    border: 1px solid rgba(25, 126, 0, 0.3);
+                }
+
+                .PDF417_Info_Popup_Details {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 0.75rem;
+                    background: rgba(255, 255, 255, 0.05);
                     border-radius: 0.5rem;
                 }
 
-                .PDF417_Info_Popup_Fields {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.5rem;
-                }
-
-                .PDF417_Info_Popup_Field {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    gap: 1rem;
-                    padding: 0.5rem 0.75rem;
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 0.375rem;
-                }
-
-                .PDF417_Info_Popup_Field_Label {
+                .PDF417_Info_Popup_Label {
                     color: rgba(255, 255, 255, 0.6);
                     font-family: 'Open Sans', sans-serif;
-                    font-size: 0.75rem;
+                    font-size: 0.85rem;
                     flex-shrink: 0;
                 }
 
-                .PDF417_Info_Popup_Field_Value {
+                .PDF417_Info_Popup_Value {
                     color: #ffffff;
                     font-family: 'Open Sans', sans-serif;
-                    font-size: 0.8rem;
+                    font-size: 0.9rem;
                     font-weight: 600;
                     text-align: right;
                     word-break: break-word;
-                }
-
-                .PDF417_Info_Popup_Raw {
-                    color: rgba(255, 255, 255, 0.7);
-                    font-family: monospace;
-                    font-size: 0.7rem;
-                    white-space: pre-wrap;
-                    word-break: break-all;
-                    padding: 0.75rem;
-                    background: rgba(0, 0, 0, 0.3);
-                    border-radius: 0.375rem;
-                    max-height: 10rem;
-                    overflow-y: auto;
                 }
             </style>
             <script aria-label="PDF417_Info_Popup_Script">
@@ -1924,63 +1925,13 @@
                     if (!popup) return;
                     var overlay = popup.querySelector('.PDF417_Info_Popup_Overlay');
                     var closeBtn = popup.querySelector('.PDF417_Info_Popup_Close');
-                    var summary = popup.querySelector('.PDF417_Info_Popup_Summary');
-                    var fields = popup.querySelector('.PDF417_Info_Popup_Fields');
-                    var raw = popup.querySelector('.PDF417_Info_Popup_Raw');
-
-                    var AAMVA_LABELS = {
-                        DAA: 'Full Name',
-                        DAB: 'Last Name',
-                        DAC: 'First Name',
-                        DAD: 'Middle Name',
-                        DAE: 'Name Suffix',
-                        DAF: 'Name Prefix',
-                        DAG: 'Address',
-                        DAH: 'Address 2',
-                        DAI: 'City',
-                        DAJ: 'State',
-                        DAK: 'Postal Code',
-                        DAQ: 'License / ID Number',
-                        DAR: 'Audit Information',
-                        DAS: 'Inventory Control Number',
-                        DAT: 'Document Discriminator',
-                        DAU: 'Height',
-                        DAV: 'Weight',
-                        DAW: 'Weight Range',
-                        DAX: 'Eye Color',
-                        DAY: 'Hair Color',
-                        DAZ: 'Hair Color',
-                        DBA: 'Expiration Date',
-                        DBB: 'Date of Birth',
-                        DBC: 'Sex',
-                        DBD: 'Issue Date',
-                        DCA: 'Vehicle Class',
-                        DCB: 'Restriction Codes',
-                        DCD: 'Endorsement Codes',
-                        DCS: 'Last Name',
-                        DCT: 'First / Middle Name',
-                        DCU: 'Name Suffix',
-                        DCV: 'Name Prefix',
-                        DCG: 'Document Class',
-                        DCH: 'Restriction Code',
-                        DCI: 'Place of Birth',
-                        DCJ: 'Audit Information',
-                        DCK: 'Inventory Control',
-                        DCL: 'Race / Ethnicity',
-                        DCM: 'Standard Vehicle Class',
-                        DCN: 'Standard Endorsement',
-                        DCO: 'Standard Restriction',
-                        DCP: 'Jurisdiction Vehicle Class',
-                        DCQ: 'Jurisdiction Endorsement',
-                        DCR: 'Jurisdiction Restriction',
-                        DDA: 'Compliance Type',
-                        DDB: 'Revision Date',
-                        DDC: 'Hazmat Expiration',
-                        DDD: 'Limited Duration Document',
-                        ZVA: 'Jurisdiction Specific',
-                        ZVB: 'Jurisdiction Specific',
-                        ZVC: 'Jurisdiction Specific'
-                    };
+                    var text = popup.querySelector('.PDF417_Info_Popup_Text');
+                    var idn = popup.querySelector('.PDF417_Info_Popup_IDN');
+                    var dob = popup.querySelector('.PDF417_Info_Popup_DOB');
+                    var nameEl = popup.querySelector('.PDF417_Info_Popup_Name');
+                    var address = popup.querySelector('.PDF417_Info_Popup_Address');
+                    var exp = popup.querySelector('.PDF417_Info_Popup_EXP');
+                    var iss = popup.querySelector('.PDF417_Info_Popup_ISS');
 
                     function setOpen(open) {
                         popup.classList.toggle('PDF417_Info_Popup_Open', open);
@@ -2028,33 +1979,54 @@
                         return value;
                     }
 
+                    function setValue(element, value) {
+                        if (element) element.textContent = value || '';
+                    }
+
                     function render(data) {
                         console.log('[PDF417 Info] Raw data:', data);
-                        if (summary) summary.textContent = 'Scanned data decoded successfully.';
-                        if (fields) fields.innerHTML = '';
-                        if (raw) raw.textContent = data || '';
+                        if (text) text.textContent = 'Scanned data decoded successfully.';
+                        setValue(idn, '');
+                        setValue(dob, '');
+                        setValue(nameEl, '');
+                        setValue(address, '');
+                        setValue(exp, '');
+                        setValue(iss, '');
 
                         var parsed = parseAAMVA(data);
-                        var keys = Object.keys(parsed);
                         console.log('[PDF417 Info] Parsed AAMVA fields:', parsed);
 
-                        if (keys.length === 0) {
-                            if (summary) summary.textContent = 'Raw barcode data (no structured fields detected).';
-                            if (fields) {
-                                fields.innerHTML = '<div class="PDF417_Info_Popup_Field"><span class="PDF417_Info_Popup_Field_Label">Data</span><span class="PDF417_Info_Popup_Field_Value">' + escapeHtml(data) + '</span></div>';
-                            }
+                        if (Object.keys(parsed).length === 0) {
+                            if (text) text.textContent = 'Raw barcode data (no structured fields detected).';
+                            setValue(idn, data || '');
                             return;
                         }
 
-                        keys.forEach(function (key) {
-                            var label = AAMVA_LABELS[key] || key;
-                            var value = formatValue(key, parsed[key]);
-                            var row = document.createElement('div');
-                            row.className = 'PDF417_Info_Popup_Field';
-                            row.innerHTML = '<span class="PDF417_Info_Popup_Field_Label">' + escapeHtml(label) + '</span>' +
-                                '<span class="PDF417_Info_Popup_Field_Value">' + escapeHtml(value) + '</span>';
-                            fields.appendChild(row);
-                        });
+                        setValue(idn, parsed.DAQ);
+                        setValue(dob, formatValue('DBB', parsed.DBB));
+
+                        var fullName = parsed.DAA;
+                        if (!fullName) {
+                            var nameParts = [];
+                            if (parsed.DCS) nameParts.push(parsed.DCS);
+                            if (parsed.DAC) nameParts.push(parsed.DAC);
+                            if (parsed.DAD) nameParts.push(parsed.DAD);
+                            if (nameParts.length === 0 && parsed.DCT) nameParts.push(parsed.DCT);
+                            fullName = nameParts.join(' ');
+                        }
+                        setValue(nameEl, fullName);
+
+                        var addressParts = [];
+                        if (parsed.DAG) addressParts.push(parsed.DAG);
+                        var cityStateZip = [];
+                        if (parsed.DAI) cityStateZip.push(parsed.DAI);
+                        if (parsed.DAJ) cityStateZip.push(parsed.DAJ);
+                        if (parsed.DAK) cityStateZip.push(parsed.DAK);
+                        if (cityStateZip.length) addressParts.push(cityStateZip.join(', '));
+                        setValue(address, addressParts.join(', '));
+
+                        setValue(exp, formatValue('DBA', parsed.DBA));
+                        setValue(iss, formatValue('DBD', parsed.DBD));
                     }
 
                     window.__showPDF417Info = function (data) {
